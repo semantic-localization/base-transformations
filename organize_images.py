@@ -1,3 +1,5 @@
+#!/home/jayant/miniconda3/bin/python
+
 import os
 import shutil
 
@@ -34,4 +36,6 @@ def organize(store):
 
 
 if __name__ == '__main__':
+    shutil.rmtree('section_images/')
     organize('wholefood')
+    organize('traderjoe')
