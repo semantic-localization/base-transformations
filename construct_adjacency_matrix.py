@@ -43,7 +43,7 @@ def construct_adjacency_matrix(store, threshold=0):
             'snacks',
             'vegetables',
             'water',
-            'none'
+            # 'none'
             ]
     n = len(labels)
 
@@ -54,12 +54,11 @@ def construct_adjacency_matrix(store, threshold=0):
         lines = list(f)
         # previous left & right labels
         pll, prl = lines[0].strip().split()[1].split(':')
+        plli, prli = labels.index(pll), labels.index(prl)
         for i, line in enumerate(lines[1:]):
             time_range, f_labels = line.strip().split()
             # left right labels for the present frame
             ll, rl = f_labels.split(':')
-            # find indexes for each of the labels
-            plli, prli, lli, rli = labels.index(pll), labels.index(prl), labels.index(ll), labels.index(rl)
 
             """
             UPDATES:
@@ -67,17 +66,26 @@ def construct_adjacency_matrix(store, threshold=0):
             2. Left section from the previous frame is related to both the left and right sections in the present frame
             3. Above same for the right frame
             """
-            # present left-right
-            adjacency_matrix[lli,rli] = adjacency_matrix[rli,lli] = adjacency_matrix[lli,rli] + 1
-            # previous left to current left-right
-            adjacency_matrix[plli,lli] = adjacency_matrix[lli,plli] = adjacency_matrix[plli,lli] + 1
-            adjacency_matrix[plli,rli] = adjacency_matrix[rli,plli] = adjacency_matrix[plli,rli] + 1
-            # previous right to current left-right
-            adjacency_matrix[prli,lli] = adjacency_matrix[lli,prli] = adjacency_matrix[prli,lli] + 1
-            adjacency_matrix[prli,rli] = adjacency_matrix[rli,prli] = adjacency_matrix[prli,rli] + 1
+            # previous left-right to current left
+            if ll != 'none':
+                # find index for the label
+                lli = labels.index(ll)
+                adjacency_matrix[plli,lli] = adjacency_matrix[lli,plli] = adjacency_matrix[plli,lli] + 1
+                adjacency_matrix[prli,lli] = adjacency_matrix[lli,prli] = adjacency_matrix[prli,lli] + 1
+                plli = lli
 
-            # Update previous labels
-            pll, prl = ll, rl
+            # previous left-right to current right
+            if rl != 'none':
+                # find index for the label
+                rli = labels.index(rl)
+                adjacency_matrix[plli,rli] = adjacency_matrix[rli,plli] = adjacency_matrix[plli,rli] + 1
+                adjacency_matrix[prli,rli] = adjacency_matrix[rli,prli] = adjacency_matrix[prli,rli] + 1
+                prli = rli
+
+            if ll != 'none' and rl != 'none':
+                # present left-right
+                adjacency_matrix[lli,rli] = adjacency_matrix[rli,lli] = adjacency_matrix[lli,rli] + 1
+
 
             # Let's do something simple first
             # Don't update previous label if the none label lasts for no more than 5 seconds
