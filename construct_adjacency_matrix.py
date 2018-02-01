@@ -29,21 +29,21 @@ def construct_adjacency_matrix(store, threshold=0):
             'cheese',
             'counter',
             'dairy',
+            'diapers',
             'dressing',
             'entrance',
             'flowers',
             'frozenfood',
             'health',
             'meat',
-            'none',
             'oils',
             'pasta',
             'pets',
             'seafood',
             'snacks',
-            'soup',
             'vegetables',
-            'water'
+            'water',
+            'none'
             ]
     n = len(labels)
 
@@ -52,13 +52,32 @@ def construct_adjacency_matrix(store, threshold=0):
 
     with open(labels_file) as f:
         lines = list(f)
-        prev_label = lines[0].strip().split()[1]
+        # previous left & right labels
+        pll, prl = lines[0].strip().split()[1].split(':')
         for i, line in enumerate(lines[1:]):
-            time_range, label = line.strip().split()
-            li, pli = labels.index(label), labels.index(prev_label)
-            adjacency_matrix[li,pli] += 1
-            adjacency_matrix[pli,li] += 1
-            prev_label = label
+            time_range, f_labels = line.strip().split()
+            # left right labels for the present frame
+            ll, rl = f_labels.split(':')
+            # find indexes for each of the labels
+            plli, prli, lli, rli = labels.index(pll), labels.index(prl), labels.index(ll), labels.index(rl)
+
+            """
+            UPDATES:
+            1. Left and right sections in the present frame are related
+            2. Left section from the previous frame is related to both the left and right sections in the present frame
+            3. Above same for the right frame
+            """
+            # present left-right
+            adjacency_matrix[lli,rli] = adjacency_matrix[rli,lli] = adjacency_matrix[lli,rli] + 1
+            # previous left to current left-right
+            adjacency_matrix[plli,lli] = adjacency_matrix[lli,plli] = adjacency_matrix[plli,lli] + 1
+            adjacency_matrix[plli,rli] = adjacency_matrix[rli,plli] = adjacency_matrix[plli,rli] + 1
+            # previous right to current left-right
+            adjacency_matrix[prli,lli] = adjacency_matrix[lli,prli] = adjacency_matrix[prli,lli] + 1
+            adjacency_matrix[prli,rli] = adjacency_matrix[rli,prli] = adjacency_matrix[prli,rli] + 1
+
+            # Update previous labels
+            pll, prl = ll, rl
 
             # Let's do something simple first
             # Don't update previous label if the none label lasts for no more than 5 seconds
@@ -88,4 +107,4 @@ def construct_adjacency_matrix(store, threshold=0):
 
 if __name__ == '__main__':
     construct_adjacency_matrix('wholefood')
-    construct_adjacency_matrix('traderjoe', 1)
+    construct_adjacency_matrix('traderjoe')
