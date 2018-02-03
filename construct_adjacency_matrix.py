@@ -18,98 +18,88 @@ def to_time(s):
     m, s = map(int, s.split(':'))
     return 60*m + s
 
+def get_labels():
+    return [
+           'bars',
+           'beverages',
+           'bodycare',
+           'bread',
+           'cereal',
+           'cheese',
+           'counter',
+           'dairy',
+           'diapers',
+           'dressing',
+           'entrance',
+           'flowers',
+           'frozenfood',
+           'health',
+           'meat',
+           'oils',
+           'pasta',
+           'pets',
+           'seafood',
+           'snacks',
+           'vegetables',
+           'water',
+           # 'none'
+           ]
 
 def construct_adjacency_matrix(store, threshold=0):
-    labels = [
-            'bars',
-            'beverages',
-            'bodycare',
-            'bread',
-            'cereal',
-            'cheese',
-            'counter',
-            'dairy',
-            'diapers',
-            'dressing',
-            'entrance',
-            'flowers',
-            'frozenfood',
-            'health',
-            'meat',
-            'oils',
-            'pasta',
-            'pets',
-            'seafood',
-            'snacks',
-            'vegetables',
-            'water',
-            # 'none'
-            ]
+    labels = get_labels()
     n = len(labels)
 
     adjacency_matrix = np.zeros((n,n))
     labels_file = 'labels_{}.txt'.format(store)
 
+    decay = 0.1
+    step_size = 5
     with open(labels_file) as f:
-        lines = list(f)
-        # previous left & right labels
-        pll, prl = lines[0].strip().split()[1].split(':')
-        plli, prli = labels.index(pll), labels.index(prl)
-        for i, line in enumerate(lines[1:]):
-            time_range, f_labels = line.strip().split()
-            # left right labels for the present frame
-            ll, rl = f_labels.split(':')
-
-            """
-            UPDATES:
-            1. Left and right sections in the present frame are related
-            2. Left section from the previous frame is related to both the left and right sections in the present frame
-            3. Above same for the right frame
-            """
-            # previous left-right to current left
+        frames = list(f)
+        n = len(frames)
+        for i in range(n):
+            frame = frames[i]
+            ll, rl = frame.strip().split()[1].split(':')
+            lli, rli = None, None
             if ll != 'none':
-                # find index for the label
                 lli = labels.index(ll)
-                adjacency_matrix[plli,lli] = adjacency_matrix[lli,plli] = adjacency_matrix[plli,lli] + 1
-                adjacency_matrix[prli,lli] = adjacency_matrix[lli,prli] = adjacency_matrix[prli,lli] + 1
-                plli = lli
-
-            # previous left-right to current right
             if rl != 'none':
-                # find index for the label
                 rli = labels.index(rl)
-                adjacency_matrix[plli,rli] = adjacency_matrix[rli,plli] = adjacency_matrix[plli,rli] + 1
-                adjacency_matrix[prli,rli] = adjacency_matrix[rli,prli] = adjacency_matrix[prli,rli] + 1
-                prli = rli
+            # Mutually related
+            if lli and rli:
+                adjacency_matrix[lli][rli] += 1
+                adjacency_matrix[rli][lli] += 1
 
-            if ll != 'none' and rl != 'none':
-                # present left-right
-                adjacency_matrix[lli,rli] = adjacency_matrix[rli,lli] = adjacency_matrix[lli,rli] + 1
+            for j in range(i+1, n):
+                next_frame = frames[j]
+                nll, nrl = next_frame.strip().split()[1].split(':')
+                steps = (j-i)//step_size
+                weight = decay ** steps
+                if nll != 'none':
+                    nlli = labels.index(nll)
+                    if lli:
+                        adjacency_matrix[lli][nlli] += weight
+                        adjacency_matrix[nlli][lli] += weight
+                    if rli:
+                        adjacency_matrix[rli][nlli] += weight
+                        adjacency_matrix[nlli][rli] += weight
+                if nrl != 'none':
+                    nrli = labels.index(nrl)
+                    if lli:
+                        adjacency_matrix[lli][nrli] += weight
+                        adjacency_matrix[nrli][lli] += weight
+                    if rli:
+                        adjacency_matrix[rli][nrli] += weight
+                        adjacency_matrix[nrli][rli] += weight
 
 
-            # Let's do something simple first
-            # Don't update previous label if the none label lasts for no more than 5 seconds
-#             if label == 'none':
-#                 start_time, end_time = time_range.split('-')
-#                 duration = to_time(end_time) - to_time(start_time)
-#                 if prev_label:
-#                     adjacency_matrix[label][prev_label] += duration
-#                     adjacency_matrix[prev_label][label] += duration
-#                 prev_label = label
+    # L1 normalize
+    sum_ = adjacency_matrix.sum(axis=1);    sum_ = np.reshape(sum_, (-1,1))
+    adjacency_matrix = adjacency_matrix / sum_
 
-    print(adjacency_matrix)
-    scipy.io.savemat('{}_adjacency.mat'.format(store), mdict={'labels': np.array(labels), 'adjacency_matrix': adjacency_matrix})
-
-#     for sctn, adjacency_list in adjacency_matrix.items():
-#         del_list = []
-#         for nbr_sctn, freq in adjacency_list.items():
-#             if freq > threshold:
-#                 adjacency_list[nbr_sctn] = 1
-#             else:
-#                 del_list.append(nbr_sctn)
-#         for nbr_sctn in del_list:
-#             del(adjacency_list[nbr_sctn])
-#         print('{} :\n\t{}\n--'.format(sctn, adjacency_list))
+    # import ipdb; ipdb.set_trace()
+    # print(adjacency_matrix)
+    scipy.io.savemat('visualization/adjacency_matrices/{}_adjacency.mat'.format(store), mdict={'labels': np.array(labels), 'adjacency_matrix': adjacency_matrix})
 
 
 

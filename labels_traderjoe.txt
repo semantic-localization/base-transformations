@@ -152,8 +152,8 @@
 10:07 cheese:cheese
 10:10 cheese:none
 10:13 none:none
-10:17 bodycare:pasta
-10:24 bodycare:oils
+10:17 health:pasta
+10:24 health:oils
 10:26 oils:oils
 10:33 oils:counter
 10:34 counter:counter

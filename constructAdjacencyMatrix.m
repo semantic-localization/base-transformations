@@ -1,7 +1,11 @@
-function constructAdjacencyMatrix(store)
-  filename = sprintf('%s_adjacency.mat', lower(store));
+function constructAdjacencyMatrix(store, cmax)
+  filename = sprintf('visualization/adjacency_matrices/%s_adjacency.mat', lower(store));
   load(filename);
-  imagesc(adjacency_matrix);
+  if exist('cmax', 'var')
+    imagesc(adjacency_matrix, [0 cmax]);
+  else
+    imagesc(adjacency_matrix);
+  end
   colorbar;
   xticks(1:size(adjacency_matrix, 1));
   xticklabels(labels);
