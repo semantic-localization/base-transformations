@@ -6,17 +6,19 @@ Observation: Store duration whenever label is none, so that it gives a sense of 
 
 
 import os
+import sys
 import shutil
 import argparse
 import numpy as np
 import scipy.io
+import heapq
 from collections import defaultdict, Counter
-
 
 
 def to_time(s):
     m, s = map(int, s.split(':'))
     return 60*m + s
+
 
 def get_labels():
     return [
@@ -44,6 +46,7 @@ def get_labels():
            'water',
            # 'none'
            ]
+
 
 def construct_adjacency_matrix(store, threshold=0):
     labels = get_labels()
@@ -94,15 +97,56 @@ def construct_adjacency_matrix(store, threshold=0):
 
 
     # L1 normalize
-    sum_ = adjacency_matrix.sum(axis=1);    sum_ = np.reshape(sum_, (-1,1))
+    sum_ = adjacency_matrix.sum(axis=1)
+    sum_[sum_ == 0] = 1
+    sum_ = np.reshape(sum_, (-1,1))
     adjacency_matrix = adjacency_matrix / sum_
 
     # import ipdb; ipdb.set_trace()
     # print(adjacency_matrix)
     scipy.io.savemat('visualization/adjacency_matrices/{}_adjacency.mat'.format(store), mdict={'labels': np.array(labels), 'adjacency_matrix': adjacency_matrix})
+    return
 
+
+def shortest_path(store, source, target):
+    labels = get_labels()
+    try:
+        source, target = labels.index(source), labels.index(target)
+    except:
+        print('Unknown source/target')
+        return
+
+    mat_dict = scipy.io.loadmat('visualization/adjacency_matrices/{}_adjacency.mat'.format(store))
+    adjacency_matrix = mat_dict['adjacency_matrix']
+
+    dist = { v: float('inf') for v in range(len(labels)) }
+    dist[source] = 0
+    back = { v: None for v in range(len(labels)) }
+    for _ in range(len(labels)):
+        u, d_u = min(dist.items(), key=lambda tup: tup[1])
+        del(dist[u])
+        for v, u_v in enumerate(adjacency_matrix[u]):
+            if v in dist and u_v != 0:
+                d_v = d_u + 1/u_v     # Since adjacency values are indicative of proximity
+                if d_v < dist[v]:
+                    dist[v] = d_v
+                    back[v] = u
+
+    # import ipdb; ipdb.set_trace()
+    u = target
+    path = [labels[u]]
+    while u and u != source:
+        u = back[u]
+        path.append(labels[u])
+    path.reverse()
+    return path
 
 
 if __name__ == '__main__':
-    construct_adjacency_matrix('wholefood')
-    construct_adjacency_matrix('traderjoe')
+    # construct_adjacency_matrix('wholefood')
+    # construct_adjacency_matrix('traderjoe')
+
+    from_ = sys.argv[1]
+    to_ = sys.argv[2]
+    path = shortest_path('traderjoe', from_, to_)
+    print(' -> '.join(path))

@@ -1,0 +1,32 @@
+beverages -> cheese
+
+beverages -> snacks
+
+bread -> vegetables -> dairy -> cheese
+
+bread -> vegetables -> meat
+
+cereal -> dairy
+
+cheese -> dairy -> vegetables -> meat
+
+cheese -> dairy -> frozenfood -> entrance
+
+cheese -> snacks -> counter
+
+counter -> entrance -> frozenfood
+
+counter -> oils -> pasta
+
+counter -> entrance -> flowers -> vegetables -> meat
+
+dairy -> frozenfood -> entrance
+
+flowers -> entrance -> counter -> oils -> health
+
+frozenfood -> dairy -> cheese -> pasta
+
+health -> oils -> counter -> entrance -> flowers -> vegetables -> bread
+
+health -> oils -> counter
+
