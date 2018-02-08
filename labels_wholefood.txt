@@ -4,10 +4,10 @@
 0:9 vegetables:vegetables
 0:25 vegetables:dressing
 0:27 vegetables:vegetables
-0:35 seafood:seafood
+0:35 meat:meat
 0:36 cereal:cereal
-0:37 seafood:cereal
-0:38 vegetables:seafood
+0:37 meat:cereal
+0:38 vegetables:meat
 0:39 vegetables:vegetables
 0:42 meat:meat
 0:53 meat:bodycare

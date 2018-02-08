@@ -48,17 +48,23 @@ def get_labels():
            ]
 
 
-def construct_adjacency_matrix(store, threshold=0):
-    labels = get_labels()
-    n = len(labels)
-
-    adjacency_matrix = np.zeros((n,n))
+def construct_adjacency_matrix(store, normalize=False):
     labels_file = 'labels_{}.txt'.format(store)
-
     decay = 0.1
     step_size = 5
+
     with open(labels_file) as f:
         frames = list(f)
+
+        labels = set()
+        for frame in frames:
+            ls = frame.strip().split()[1].split(':')
+            for l in ls:
+                labels.add(l)
+        labels = sorted(list(labels))
+        del(labels[labels.index('none')])
+        adjacency_matrix = np.zeros((len(labels),len(labels)))
+
         n = len(frames)
         for i in range(n):
             frame = frames[i]
@@ -97,10 +103,11 @@ def construct_adjacency_matrix(store, threshold=0):
 
 
     # L1 normalize
-    sum_ = adjacency_matrix.sum(axis=1)
-    sum_[sum_ == 0] = 1
-    sum_ = np.reshape(sum_, (-1,1))
-    adjacency_matrix = adjacency_matrix / sum_
+    if normalize:
+        sum_ = adjacency_matrix.sum(axis=1)
+        sum_[sum_ == 0] = 1
+        sum_ = np.reshape(sum_, (-1,1))
+        adjacency_matrix = adjacency_matrix / sum_
 
     # import ipdb; ipdb.set_trace()
     # print(adjacency_matrix)
@@ -143,10 +150,10 @@ def shortest_path(store, source, target):
 
 
 if __name__ == '__main__':
-    # construct_adjacency_matrix('wholefood')
-    # construct_adjacency_matrix('traderjoe')
+    construct_adjacency_matrix('wholefood', True)
+    construct_adjacency_matrix('traderjoe', True)
 
-    from_ = sys.argv[1]
-    to_ = sys.argv[2]
-    path = shortest_path('traderjoe', from_, to_)
-    print(' -> '.join(path))
+#     from_ = sys.argv[1]
+#     to_ = sys.argv[2]
+#     path = shortest_path('traderjoe', from_, to_)
+#     print(' -> '.join(path))
