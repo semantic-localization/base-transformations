@@ -34,3 +34,20 @@ bin/NavigationQA
 ## Aims
 * Localization - given a scene, where am I on the graph ? Given location, what does the scene look like ?
 * Navigation - Section A to B in new scene
+
+
+## Deliverables
+### Improvements
+* Projection from behind image plane to be eliminated
+* R' * (X-C) > 0
+* Take distortion into account
+
+### Adjacency Matrix
+* Stitch point cloud
+* Label points and project back
+* Compute distance using median metrics
+* If not stitching, average across adjacency matrices from batches
+
+### Bag of Words
+* Project points onto frame, sample from images then subsample OR window the image, then take windows with sufficiently large fraction 
+* Can run classifier using image features on windowed images later
