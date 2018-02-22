@@ -2,8 +2,8 @@ function [labels, frame_labels, label_colors] = readLabels(store)
   labels = {'beverages', 'bread', 'cereal', 'cheese', 'counter', 'dairy', 'entrance', 'flowers', 'frozenfood', 'health', 'meat', 'none', 'oils', 'pasta', 'snacks', 'vegetables', 'water'};
 
   fps = 25;
-  lfname = sprintf('data/labels_%s.txt', store);
-  lfid = fopen('data/labels_traderjoe.txt');
+  lfname = sprintf('labels_%s.txt', store);
+  lfid = fopen(lfname);
   frame_labels = zeros(681,2);
   line = textscan(lfid, '%d:%d %s', 1);
   line_lbls = split(line{3}, ':');

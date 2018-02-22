@@ -3,17 +3,17 @@
 
 n = size(labels,2);
 adjacency_matrix = zeros(n);
-disp(adjacency_matrix);
 freqs = zeros(n);
 for ver=0:200:800
   adjacency_matrix_ver = adjacencyMatrixFromCloud_(ver, labels);
   adjacency_matrix = adjacency_matrix + adjacency_matrix_ver;
-  disp(adjacency_matrix);
+  % disp(adjacency_matrix);
   idx = adjacency_matrix_ver > 0;
   freqs(idx) = freqs(idx) + 1;
 end
 freqs(freqs == 0) = 1;
 adjacency_matrix = adjacency_matrix ./ freqs;
+disp(adjacency_matrix);
 save('adjacencyMatrixFromCloud.mat', 'adjacency_matrix', 'freqs');
 
 function [adjacency_matrix_ver] = adjacencyMatrixFromCloud_(ver, labels)
