@@ -7,6 +7,11 @@ function [num_pt, pts, ptIds] = readPointCloud(ver)
 
   sfname = sprintf('reconstruction%07d/structure.txt', ver);
   sfid = fopen(sfname);
+  if sfid == -1
+    num_pt = 0;
+    return;
+  end
+
   num_pt = textscan(sfid, '%s %d', 1); num_pt = num_pt{2};
 
   % store point IDs

@@ -8,6 +8,11 @@ function votePointCloud_(ver, labels, frame_labels)
   disp(sprintf('Ver: %d', ver));
 
   [num_pt, pts, ptIds] = readPointCloud(ver);
+  if num_pt == 0 
+    disp('  No points');
+    continue; 
+  end
+
   disp('  Cloud read');
 
   votes = zeros(num_pt, size(labels,2));

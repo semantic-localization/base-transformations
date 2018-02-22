@@ -19,16 +19,22 @@ save('adjacencyMatrixFromCloud.mat', 'adjacency_matrix', 'freqs');
 function [adjacency_matrix_ver] = adjacencyMatrixFromCloud_(ver, labels)
   % get votes, labels from here
   disp(sprintf('Ver: %d', ver));
-  load(sprintf('reconstruction%07d/labeled_cloud.mat', ver));
+  adjacency_matrix_ver = zeros(n);
 
-  [~, pts, ~] = readPointCloud(ver);
+  [num_pt, pts, ~] = readPointCloud(ver);
+  if num_pt == 0 
+    disp('  No points');
+    continue; 
+  end
+
   pts = pts(:,1:3);
   disp('  Cloud read');
+
+  load(sprintf('reconstruction%07d/labeled_cloud.mat', ver));
 
   n = size(labels,2);
   sums = zeros(n,1);
   locs = zeros(n,3);
-  adjacency_matrix_ver = zeros(n);
   sum_threshold = 10;
   for i=1:17
     idx = votes == i;

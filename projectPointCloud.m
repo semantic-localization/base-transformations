@@ -7,10 +7,15 @@ end
 function projectPointCloud_(ver, frame_labels, label_colors)
   % get votes, labels from here
   disp(sprintf('Ver: %d', ver));
-  load(sprintf('reconstruction%07d/labeled_cloud.mat', ver));
 
   [num_pt, pts, ~] = readPointCloud(ver);
+  if num_pt == 0 
+    disp('  No points');
+    continue; 
+  end
+
   disp('  Cloud read');
+  load(sprintf('reconstruction%07d/labeled_cloud.mat', ver));
 
   %% Refer calib_fisheye_zshade.txt
   fx = 562.89536;
