@@ -19,7 +19,7 @@ save('adjacencyMatrixFromCloud.mat', 'adjacency_matrix', 'freqs');
 function [adjacency_matrix_ver] = adjacencyMatrixFromCloud_(ver, labels)
   % get votes, labels from here
   disp(sprintf('Ver: %d', ver));
-  n = size(labels,2);
+  n = size(labels,2)-1;
   adjacency_matrix_ver = zeros(n);
 
   [num_pt, pts, ~] = readPointCloud(ver);
@@ -36,7 +36,7 @@ function [adjacency_matrix_ver] = adjacencyMatrixFromCloud_(ver, labels)
   sums = zeros(n,1);
   locs = zeros(n,3);
   sum_threshold = 10;
-  for i=1:17
+  for i=1:n
     idx = votes == i;
     s = sum(idx);
     sums(i) = s;
@@ -44,10 +44,10 @@ function [adjacency_matrix_ver] = adjacencyMatrixFromCloud_(ver, labels)
       locs(i,:) = median(pts(idx, :));
     end
   end
-  for i=1:16
+  for i=1:n-1
     si = sums(i);
     if si > sum_threshold
-      for j=i+1:17
+      for j=i+1:n
         sj = sums(j);
         if sj > sum_threshold
           dist = norm(locs(i) - locs(j));

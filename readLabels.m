@@ -1,5 +1,5 @@
 function [labels, frame_labels, label_colors] = readLabels(store)
-  labels = {'beverages', 'bread', 'cereal', 'cheese', 'counter', 'dairy', 'entrance', 'flowers', 'frozenfood', 'health', 'meat', 'none', 'oils', 'pasta', 'snacks', 'vegetables', 'water'};
+  labels = {'beverages', 'bread', 'cereal', 'cheese', 'counter', 'dairy', 'entrance', 'flowers', 'frozenfood', 'health', 'meat', 'oils', 'pasta', 'snacks', 'vegetables', 'water', 'none'};
 
   fps = 25;
   lfname = sprintf('labels_%s.txt', store);
