@@ -170,4 +170,5 @@
 11:09 frozenfood:entrance
 11:13 counter:counter
 11:14 counter:entrance
-11:16-11:20 entrance:entrance
+11:16 entrance:entrance
+11:21 none:none

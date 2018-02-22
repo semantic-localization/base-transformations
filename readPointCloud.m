@@ -9,6 +9,8 @@ function [num_pt, pts, ptIds] = readPointCloud(ver)
   sfid = fopen(sfname);
   if sfid == -1
     num_pt = 0;
+    ptIds = [];
+    pts = [];
     return;
   end
 

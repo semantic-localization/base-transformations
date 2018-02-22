@@ -10,7 +10,7 @@ function votePointCloud_(ver, labels, frame_labels)
   [num_pt, pts, ptIds] = readPointCloud(ver);
   if num_pt == 0 
     disp('  No points');
-    continue; 
+    return; 
   end
 
   disp('  Cloud read');

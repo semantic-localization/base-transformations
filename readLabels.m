@@ -4,7 +4,7 @@ function [labels, frame_labels, label_colors] = readLabels(store)
   fps = 25;
   lfname = sprintf('labels_%s.txt', store);
   lfid = fopen(lfname);
-  frame_labels = zeros(681,2);
+  frame_labels = zeros(683,2);
   line = textscan(lfid, '%d:%d %s', 1);
   line_lbls = split(line{3}, ':');
   st = line{1} * 60 + line{2}; pllabel = find(strcmp(labels, line_lbls(1))); prlabel = find(strcmp(labels, line_lbls(2)));
@@ -22,7 +22,7 @@ function [labels, frame_labels, label_colors] = readLabels(store)
       break
     end
   end
-  et = 680;
+  et = 682;
   for i = st:et
     frame_labels(i+1,1) = pllabel;
     frame_labels(i+1,2) = prlabel;
