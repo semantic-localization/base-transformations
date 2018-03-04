@@ -10,34 +10,47 @@ def ensure_dir(dir_path):
         os.makedirs(dir_path)
 
 
+def copy_file(fname, label_type, label):
+    from_dir = 'image'
+    to_dir = 'organized/{}/{}'.format(label_type, label)
+    ensure_dir(to_dir)
+    shutil.copyfile('{}/{}'.format(from_dir, fname), '{}/{}'.format(to_dir, fname))
+
+
+def copy_files(start_frame, end_frame, llabel, rlabel):
+    for frame_num in range(start_frame, end_frame+1):
+        fname = 'image{:07d}.jpg'.format(frame_num)
+        copy_file(fname, 'left', llabel)
+        copy_file(fname, 'right', rlabel)
+
+
 """
 A directory with the same name as the store residing under section_images is populated with labels as the 
 subdirectory names.
 """
 def organize(store):
+    ending_times = { 'traderjoe': 682, 'wholefood': 302 }
     labels_file = 'labels_{}.txt'.format(store)
-    from_dir = '{}_frames'.format(store)
-    k = 5
-    rate = 10
+    rate = 25
+    k = rate//2
     with open(labels_file) as f:
-        lines = list(f)
-        for i, line in enumerate(lines):
-            time_range, label = line.strip().split()
-            start_time, end_time = time_range.split('-')
-            def to_time(s):
-                m, s = map(int, s.split(':'))
-                return 60*m + s
-            start_time, end_time = map(to_time, (start_time, end_time))
+        lines = list(f)[:10]
 
-            to_dir = 'section_images/{}'.format(label)
-            ensure_dir(to_dir)
+    _, labels = lines[0].strip().split()
+    start_frame = 1
+    llabel, rlabel = labels.split(':')
+    for i in range(1,len(lines)):
+        end, labels = lines[i].strip().split()
+        m, s = map(int, end.split(':'))
+        end = 60*m + s
+        end_frame = end*rate - rate//2
 
-            st = start_time * rate - (k-1) if i > 0 else start_time
-            et = end_time * rate + k if i < len(lines)-1 else end_time * rate
-            for t in range(st, et+1):
-                from_img_file = 'img{:05d}.jpg'.format(t)
-                to_img_file = '{}_img_{:05d}.jpg'.format(store, t)
-                shutil.copyfile('{}/{}'.format(from_dir, from_img_file), '{}/{}'.format(to_dir, to_img_file))
+        copy_files(start_frame, end_frame-1, llabel, rlabel)
+        llabel, rlabel = labels.split(':')
+        start_frame = end_frame
+
+    end_frame = ending_times[store] * rate
+    copy_files(start_frame, end_frame, llabel, rlabel)
 
 
 if __name__ == '__main__':
@@ -48,6 +61,7 @@ if __name__ == '__main__':
 #             default=1,
 #             help='Path to folders of labeled images.'
 #         )
-    shutil.rmtree('section_images/')
-    organize('wholefood')
+    if os.path.exists('organized'):
+        shutil.rmtree('organized')
     organize('traderjoe')
+    # organize('wholefood')
