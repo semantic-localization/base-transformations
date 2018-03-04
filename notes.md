@@ -51,3 +51,13 @@ bin/NavigationQA
 ### Bag of Words
 * Project points onto frame, sample from images then subsample OR window the image, then take windows with sufficiently large fraction 
 * Can run classifier using image features on windowed images later
+
+### Data augmentation
+Using image shifting
+Nearest neighbors
+top k visualization
+skip connections
+predict left-right labeling using 2 strategies
+ - just image
+ - patch probability labels/17 feature vector OR even last layer one (HYPOTHESIS - this should perform much better)
+run the same thing for wholefoods
