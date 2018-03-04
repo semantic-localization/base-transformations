@@ -1,10 +1,16 @@
 function [labels, frame_labels, label_colors] = readLabels(store)
-  labels = {'beverages', 'bread', 'cereal', 'cheese', 'counter', 'dairy', 'entrance', 'flowers', 'frozenfood', 'health', 'meat', 'oils', 'pasta', 'snacks', 'vegetables', 'water', 'none'};
+  if store == 'traderjoe'
+    labels = {'beverages', 'bread', 'cereal', 'cheese', 'counter', 'dairy', 'entrance', 'flowers', 'frozenfood', 'health', 'meat', 'oils', 'pasta', 'snacks', 'vegetables', 'water', 'none'};
+    secs = 682;
+  elseif store == 'wholefood'
+    labels = {'bars', 'beverages', 'bodycare', 'cereal', 'dairy', 'diapers', 'dressing', 'entrance', 'frozenfood', 'health', 'meat', 'none', 'oils', 'pasta', 'pets', 'vegetables', 'water'};
+    secs = 302;
+  end
 
   fps = 25;
   lfname = sprintf('labels_%s.txt', store);
   lfid = fopen(lfname);
-  frame_labels = zeros(683,2);
+  frame_labels = zeros(secs+1,2);
   line = textscan(lfid, '%d:%d %s', 1);
   line_lbls = split(line{3}, ':');
   st = line{1} * 60 + line{2}; pllabel = find(strcmp(labels, line_lbls(1))); prlabel = find(strcmp(labels, line_lbls(2)));
@@ -22,7 +28,7 @@ function [labels, frame_labels, label_colors] = readLabels(store)
       break
     end
   end
-  et = 682;
+  et = secs;
   for i = st:et
     frame_labels(i+1,1) = pllabel;
     frame_labels(i+1,2) = prlabel;
