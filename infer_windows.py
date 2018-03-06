@@ -1,34 +1,45 @@
 import imageio
-from label_image import infer
+from label_image import softmax_layer
 import argparse
 import scipy.io as sio
+import pickle
+import os
+import numpy as np
+import time
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '-i', '--image_file',
-        type=str,
-        default='TraderJoe/image/image0000001.jpg',
-        help='Image to window and classify'
-    )
-    FLAGS, unparsed = parser.parse_known_args()
-    print(FLAGS)
+    imgfiles = sorted(os.listdir('image'))
+    st = time.time()
+    n = len(imgfiles)
+    for k, imgfile in enumerate(imgfiles):
+        img = imageio.imread('image/{}'.format(imgfile))
+        imgfile = imgfile.split('.')[0][5:]
+        height, width, _ = img.shape
+        window_labels = []
 
-    img = imageio.imread(FLAGS.image_file)
-    height, width, _ = img.shape
-    window_labels = []
+        feature_vector = []
+        step = 100
+        for i in range(0,height,step):
+            for j in range(0,width,step):
+                hend = min(i+step,height)
+                wend = min(j+step,width)
+                sample = img[i:hend,j:wend,:]
+                sinfo = '{}+{}+{}x{}'.format(i, j, hend-i, wend-j)
+                fname = 'windows/image_{}.jpg'.format(sinfo)
+                imageio.imwrite(fname, sample)
+                patch_vector = softmax_layer(fname)
+                feature_vector.append(patch_vector)
+                # print('{}: {}'.format(sinfo, patch_vector), flush=True)
 
-    for i in range(0,height,100):
-        for j in range(0,width,100):
-            hend = min(i+100,height)
-            wend = min(j+100,width)
-            sample = img[i:hend,j:wend,:]
-            sinfo = '{}+{}+{}x{}'.format(i, j, hend-i, wend-j)
-            fname = 'windows/image_{}.jpg'.format(sinfo)
-            imageio.imwrite(fname, sample)
-            window_label = infer(fname)
-            window_labels.append(window_label)
-            print('{}: {}'.format(sinfo, window_label), flush=True)
-    
-    sio.savemat('window_labels_{}.mat'.format(FLAGS.image_file.split('.')[0][-12:]), { 'window_labels': window_labels })
+        feature_vector = np.concatenate(feature_vector, axis=0)
+        fname = 'image/softmax_features_{}'.format(imgfile)
+        sio.savemat('{}.mat'.format(fname), { 'feature_vector': feature_vector })
+        with open('{}.pkl'.format(fname), 'wb') as f:
+            pickle.dump(feature_vector, f)
+
+        if (i+1) % 50 == 0:
+            time_taken = time.time() - st
+            avg_time_taken = time_taken / (k+1)
+            time_remaining = (avg_time_taken * (n - k - 1)) % 60
+            print('Step: {}, time/img: {} s, time remaining: {} m'.format(k+1, avg_time_taken, time_remaining), flush=True)

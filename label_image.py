@@ -83,6 +83,21 @@ def infer(file_name):
   return labels[top]
 
 
+def softmax_layer(file_name):
+  t = read_tensor_from_image_file(file_name,
+                                  input_height=299,
+                                  input_width=299,
+                                  input_mean=128,
+                                  input_std=128)
+
+  with tf.Session(graph=graph) as sess:
+    results = sess.run(output_operation.outputs[0],
+                      {input_operation.outputs[0]: t})
+  results = np.squeeze(results)
+
+  return results
+
+
 model_file = 'classifier/output_graph.pb'
 graph = load_graph(model_file)
 input_name = "import/Mul"

@@ -34,7 +34,7 @@ def organize(store):
     rate = 25
     k = rate//2
     with open(labels_file) as f:
-        lines = list(f)[:10]
+        lines = list(f)
 
     _, labels = lines[0].strip().split()
     start_frame = 1
