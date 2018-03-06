@@ -6,15 +6,16 @@ import pickle
 import os
 import numpy as np
 import time
+import glob
 
 
 if __name__ == '__main__':
-    imgfiles = sorted(os.listdir('image'))
+    imgfiles = sorted(glob.glob('image/*.jpg'))
     st = time.time()
     n = len(imgfiles)
     for k, imgfile in enumerate(imgfiles):
-        img = imageio.imread('image/{}'.format(imgfile))
-        imgfile = imgfile.split('.')[0][5:]
+        img = imageio.imread(imgfile)
+        imgfile = imgfile.split('/')[-1].split('.')[0][5:]
         height, width, _ = img.shape
         window_labels = []
 
@@ -38,8 +39,8 @@ if __name__ == '__main__':
         with open('{}.pkl'.format(fname), 'wb') as f:
             pickle.dump(feature_vector, f)
 
-        if (i+1) % 50 == 0:
-            time_taken = time.time() - st
-            avg_time_taken = time_taken / (k+1)
-            time_remaining = (avg_time_taken * (n - k - 1)) % 60
-            print('Step: {}, time/img: {} s, time remaining: {} m'.format(k+1, avg_time_taken, time_remaining), flush=True)
+        if (i+1) % 10 == 0:
+          time_taken = time.time() - st
+          avg_time_taken = time_taken / (k+1)
+          time_remaining = (avg_time_taken * (n - k - 1)) % 60
+          print('Step: {}, time/img: {} s, time remaining: {} m'.format(k+1, avg_time_taken, time_remaining), flush=True)
