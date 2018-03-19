@@ -39,8 +39,8 @@ if __name__ == '__main__':
         with open('{}.pkl'.format(fname), 'wb') as f:
             pickle.dump(feature_vector, f)
 
-        if (i+1) % 10 == 0:
+        if (k+1) % 10 == 0:
           time_taken = time.time() - st
           avg_time_taken = time_taken / (k+1)
-          time_remaining = (avg_time_taken * (n - k - 1)) % 60
+          time_remaining = (avg_time_taken * (n - k - 1)) / 60
           print('Step: {}, time/img: {} s, time remaining: {} m'.format(k+1, avg_time_taken, time_remaining), flush=True)
