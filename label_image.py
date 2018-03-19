@@ -19,6 +19,7 @@ from __future__ import print_function
 
 import argparse
 import sys
+import os
 
 import numpy as np
 import tensorflow as tf
@@ -98,13 +99,13 @@ def softmax_layer(file_name):
   return results
 
 
-model_file = 'classifier/output_graph.pb'
+model_file = '{}/classifier/output_graph.pb'.format(os.environ['HOME'])
 graph = load_graph(model_file)
 input_name = "import/Mul"
 output_name = "import/final_result"
 input_operation = graph.get_operation_by_name(input_name)
 output_operation = graph.get_operation_by_name(output_name)
-labels = load_labels('classifier/output_labels.txt')
+labels = load_labels('{}/classifier/output_labels.txt'.format(os.environ['HOME']))
 
 
 if __name__ == "__main__":
