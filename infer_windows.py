@@ -13,13 +13,13 @@ import tensorflow as tf
 
 if __name__ == '__main__':
     # init computational graph
-    model_file = 'classifier/output_graph.pb'
+    model_file = '{}/classifier/output_graph.pb'.format(os.environ['HOME'])
     graph = load_graph(model_file)
     input_name = "import/Mul"
     output_name = "import/final_result"
     input_operation = graph.get_operation_by_name(input_name)
     output_operation = graph.get_operation_by_name(output_name)
-    labels = load_labels('classifier/output_labels.txt')
+    labels = load_labels('{}/classifier/output_labels.txt'.format(os.environ['HOME']))
 
     # to resize and normalize
     input_height = 299
