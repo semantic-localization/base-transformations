@@ -11,6 +11,22 @@ from scipy.misc import imresize
 import tensorflow as tf
 
 
+def softmax_layer(patch):
+    with tf.Session(graph=graph) as sess:
+        results = sess.run(output_operation.outputs[0],
+                  {input_operation.outputs[0]: patch})
+    results = np.squeeze(results)
+    return results
+
+
+def prepare(img):
+    float_caster = tf.cast(img, tf.float32)
+    dims_expander = tf.expand_dims(float_caster, 0)
+    resized = tf.image.resize_bilinear(dims_expander, [input_height, input_width])
+    normalized = tf.divide(tf.subtract(resized, [input_mean]), [input_std])
+    return normalized
+
+
 if __name__ == '__main__':
     # init computational graph
     model_file = '{}/classifier/output_graph.pb'.format(os.environ['HOME'])
@@ -22,6 +38,8 @@ if __name__ == '__main__':
     labels = load_labels('{}/classifier/output_labels.txt'.format(os.environ['HOME']))
 
     # to resize and normalize
+    height = 720
+    width = 1280
     input_height = 299
     input_width = 299
     input_mean = 128
@@ -32,9 +50,11 @@ if __name__ == '__main__':
     n = len(imgfiles)
 
     for k, imgfile in enumerate(imgfiles):
-        img = imageio.imread(imgfile)
+        file_reader = tf.read_file(imgfile, 'file_reader')
+        img = tf.image.decode_jpeg(file_reader, channels = 3, name='jpeg_reader')
+
+        # img = imageio.imread(imgfile)
         imgfile = imgfile.split('/')[-1].split('.')[0][5:]
-        height, width, _ = img.shape
         window_labels = []
 
         feature_vector = []
@@ -46,15 +66,19 @@ if __name__ == '__main__':
                 wend = min(j+step,width)
                 patch = img[i:hend,j:wend,:]
 
-                # start shaping the patch
-                float_caster = tf.cast(patch, tf.float32)
-                dims_expander = tf.expand_dims(float_caster, 0)
-                resized = tf.image.resize_bilinear(dims_expander, [input_height, input_width])
-                normalized = tf.divide(tf.subtract(resized, [input_mean]), [input_std])
-                if patches is None:
-                    patches = normalized
-                else:
-                    patches = tf.concat((patches, normalized), 0)
+                preprocessed = prepare(patch)
+                with tf.Session() as sess:
+                    t = sess.run(preprocessed)
+
+                import ipdb; ipdb.set_trace()
+
+                patch_vector = softmax_layer(t)
+                feature_vector.append(patch_vector)
+
+#                 if patches is None:
+#                     patches = normalized
+#                 else:
+#                     patches = tf.concat((patches, normalized), 0)
 
 #                 patch = imresize(patch, (input_height, input_width), interp='bilinear').astype(float)
 #                 patch = (patch - input_mean)/input_std
@@ -63,17 +87,7 @@ if __name__ == '__main__':
 #                 sinfo = '{}+{}+{}x{}'.format(i, j, hend-i, wend-j)
 #                 fname = 'windows/image_{}.jpg'.format(sinfo)
 #                 imageio.imwrite(fname, patch)
-#                 patch_vector = softmax_layer(fname)
-#                 feature_vector.append(patch_vector)
                 # print('{}: {}'.format(sinfo, patch_vector), flush=True)
-
-        with tf.Session() as sess:
-            patches = sess.run(patches)
-
-        with tf.Session(graph=graph) as sess:
-            results = sess.run(output_operation.outputs[0],
-                              {input_operation.outputs[0]: patches})
-        import ipdb; ipdb.set_trace()
 
         feature_vector = np.concatenate(feature_vector, axis=0)
         fname = 'image/softmax_features_{}'.format(imgfile)
