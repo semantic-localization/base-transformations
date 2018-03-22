@@ -11,10 +11,9 @@ from scipy.misc import imresize
 import tensorflow as tf
 
 
-def softmax_layer(patch):
-    with tf.Session(graph=graph) as sess:
-        results = sess.run(output_operation.outputs[0],
-                  {input_operation.outputs[0]: patch})
+def softmax_layer(sess, patch):
+    results = sess.run(output_operation.outputs[0],
+              {input_operation.inputs[0]: patch})
     results = np.squeeze(results)
     return results
 
@@ -31,7 +30,7 @@ if __name__ == '__main__':
     # init computational graph
     model_file = '{}/classifier/output_graph.pb'.format(os.environ['HOME'])
     graph = load_graph(model_file)
-    input_name = "import/Mul"
+    input_name = "import/conv/Conv2D"
     output_name = "import/final_result"
     input_operation = graph.get_operation_by_name(input_name)
     output_operation = graph.get_operation_by_name(output_name)
@@ -49,54 +48,56 @@ if __name__ == '__main__':
     st = time.time()
     n = len(imgfiles)
 
-    for k, imgfile in enumerate(imgfiles):
-        file_reader = tf.read_file(imgfile, 'file_reader')
-        img = tf.image.decode_jpeg(file_reader, channels = 3, name='jpeg_reader')
+    with graph.as_default():
+        with tf.Session(graph=graph) as sess:
+            for k, imgfile in enumerate(imgfiles):
+                file_reader = tf.read_file(imgfile, 'file_reader')
+                img = tf.image.decode_jpeg(file_reader, channels = 3, name='jpeg_reader')
 
-        # img = imageio.imread(imgfile)
-        imgfile = imgfile.split('/')[-1].split('.')[0][5:]
-        window_labels = []
+                # img = imageio.imread(imgfile)
+                imgfile = imgfile.split('/')[-1].split('.')[0][5:]
+                window_labels = []
 
-        feature_vector = []
-        step = 100
-        patches = None
-        for i in range(0,height,step):
-            for j in range(0,width,step):
-                hend = min(i+step,height)
-                wend = min(j+step,width)
-                patch = img[i:hend,j:wend,:]
+                feature_vector = []
+                step = 100
+                patches = None
+                for i in range(0,height,step):
+                    for j in range(0,width,step):
+                        hend = min(i+step,height)
+                        wend = min(j+step,width)
+                        patch = img[i:hend,j:wend,:]
 
-                preprocessed = prepare(patch)
-                with tf.Session() as sess:
-                    t = sess.run(preprocessed)
+                        preprocessed = prepare(patch)
+                        assert preprocessed.graph is graph
+                        # import ipdb; ipdb.set_trace()
 
+                        if patches is None:
+                            patches = preprocessed
+                        else:
+                            patches = tf.concat((patches, preprocessed), 0)
+
+        #                 patch = imresize(patch, (input_height, input_width), interp='bilinear').astype(float)
+        #                 patch = (patch - input_mean)/input_std
+        #                 patches.append(patch)
+
+        #                 sinfo = '{}+{}+{}x{}'.format(i, j, hend-i, wend-j)
+        #                 fname = 'windows/image_{}.jpg'.format(sinfo)
+        #                 imageio.imwrite(fname, patch)
+                        # print('{}: {}'.format(sinfo, patch_vector), flush=True)
+
+                t = sess.run(patches)
                 import ipdb; ipdb.set_trace()
-
-                patch_vector = softmax_layer(t)
+                patch_vector = softmax_layer(sess, t)
                 feature_vector.append(patch_vector)
+                import ipdb; ipdb.set_trace()
+                # feature_vector = np.concatenate(feature_vector, axis=0)
+                fname = 'image/softmax_features_{}'.format(imgfile)
+                sio.savemat('{}.mat'.format(fname), { 'feature_vector': feature_vector })
+                with open('{}.pkl'.format(fname), 'wb') as f:
+                    pickle.dump(feature_vector, f)
 
-#                 if patches is None:
-#                     patches = normalized
-#                 else:
-#                     patches = tf.concat((patches, normalized), 0)
-
-#                 patch = imresize(patch, (input_height, input_width), interp='bilinear').astype(float)
-#                 patch = (patch - input_mean)/input_std
-#                 patches.append(patch)
-
-#                 sinfo = '{}+{}+{}x{}'.format(i, j, hend-i, wend-j)
-#                 fname = 'windows/image_{}.jpg'.format(sinfo)
-#                 imageio.imwrite(fname, patch)
-                # print('{}: {}'.format(sinfo, patch_vector), flush=True)
-
-        feature_vector = np.concatenate(feature_vector, axis=0)
-        fname = 'image/softmax_features_{}'.format(imgfile)
-        sio.savemat('{}.mat'.format(fname), { 'feature_vector': feature_vector })
-        with open('{}.pkl'.format(fname), 'wb') as f:
-            pickle.dump(feature_vector, f)
-
-        if (k+1) % 10 == 0:
-          time_taken = time.time() - st
-          avg_time_taken = time_taken / (k+1)
-          time_remaining = (avg_time_taken * (n - k - 1)) / 60
-          print('Step: {}, time/img: {} s, time remaining: {} m'.format(k+1, avg_time_taken, time_remaining), flush=True)
+                if (k+1) % 1 == 0:
+                  time_taken = time.time() - st
+                  avg_time_taken = time_taken / (k+1)
+                  time_remaining = (avg_time_taken * (n - k - 1)) / 60
+                  print('Step: {}, time/img: {} s, time remaining: {} m'.format(k+1, avg_time_taken, time_remaining), flush=True)
