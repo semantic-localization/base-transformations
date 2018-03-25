@@ -9,6 +9,10 @@ function projectPointCloud_(ver, frame_labels, label_colors)
   disp(sprintf('Ver: %d', ver));
 
   [num_pt, pts, ~] = readPointCloud(ver);
+  %% TODO : remove eventually when classificiation is sorted out
+  disp(size(pts));
+  pts = pts(1:16200,:);
+  disp(size(pts));
   if num_pt == 0 
     disp('  No points');
     return; 
@@ -27,20 +31,14 @@ function projectPointCloud_(ver, frame_labels, label_colors)
   tan_omega_half_2 = 2 * tan(omega/2);
   K = [ fx slant px; 0 fy py; 0 0 1 ] * eye(3,4);  I = eye(4);
 
-  cfname = sprintf('reconstruction%07d/camera.txt', ver);
-  cfid = fopen(cfname);
-  for i=1:2, fgetl(cfid); end
-  num_poses = textscan(cfid, '%s %d', 1); num_poses = num_poses{2};
-  % frameIds = zeros(num_poses, 1); % poses = zeros(num_poses, 3, 4);
+  [frameIds, Rs, Cs] = readPoses(ver)
+  num_poses = size(frameIds,1);
 
   for i=1:num_poses
-    frame = textscan(cfid, '%d %d', 1);
-    frame = frame{2}+1;
-    % frameIds(i) = frame;
-    frame = ver+frame;
+    frame = ver+frameIds(i);
 
-    C = zeros(4);   c = cell2mat(textscan(cfid, '%f %f %f', 1))';   C(1:3,4) = c;
-    R = eye(4);     r = cell2mat(textscan(cfid, '%f %f %f', 3));    R(1:3,1:3) = r;
+    c = Cs(i,:);  C = zeros(4);   C(1:3,4) = c;
+    R = reshape(Rs(i,:,:), [4,4]);
     zaxis = r' * [0 0 1]';
     zs = (pts(:,1:3) - repmat(c',num_pt,1)) * zaxis;
     idx = zs > 0;
@@ -80,7 +78,7 @@ function projectPointCloud_(ver, frame_labels, label_colors)
       % get class from votes, project onto image with corresponding rgb
     % end
     projections(:,3) = projections(:,3) * 3;
-    colors = 255 * label_colors(votes(idx), :);
+    colors = 255 * label_colors(labeled_pts(idx), :);
     img = insertShape(img, 'FilledCircle', projections, 'Color', colors);
 
     frame_label = frame_labels(idivide(frame,int32(25))+1, :);
@@ -102,5 +100,4 @@ function projectPointCloud_(ver, frame_labels, label_colors)
   end
 
   disp('  Done');
-  fclose(cfid);
 end
