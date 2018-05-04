@@ -24,6 +24,8 @@ bin/
 bin/NavigationQA
 `RunEgoNQA_zshade.sh`
 
+`EgoMotionAlignment`
+
 
 ## Loop detection using higher order feature/structure capturing from graphs
 * embedding graphs
@@ -61,3 +63,9 @@ predict left-right labeling using 2 strategies
  - just image
  - patch probability labels/17 feature vector OR even last layer one (HYPOTHESIS - this should perform much better)
 run the same thing for wholefoods
+
+
+
+### Image prep
+1. Discard 80x100 or 100x80 images OR resize\_bilinear using scipy before adding to TFRecord
+2. Augment using gaussian blurring etc

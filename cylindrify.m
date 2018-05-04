@@ -1,9 +1,4 @@
-function [img,new_img] = rectifyWrtGroundPlane(ver)
-  %% Ver: 0
-  gravity = [-0.06943232,  0.99357245, -0.08940322]';
-  %% Ver: 200
-  % gravity = [-0.10855688  0.95380726 -0.28011983]';
-
+function [img,new_img] = cylindrify(ver)
   % get votes, labels from here
   disp(sprintf('Ver: %d', ver));
 
@@ -48,55 +43,11 @@ function [img,new_img] = rectifyWrtGroundPlane(ver)
     frame = ver+frameIds(i);
 
     R = reshape(Rs(i,:,:), [4,4]);  R = R(1:3,1:3);
-    %% Only K and R needed for Homography
-    % c = Cs(i,:);  C = zeros(4);     C(1:3,4) = c;
-
-    % pose = K * R * (I - C);
-
-    Ry = gravity;
-    Rz = R(3,:)';
-    Rz = Rz - (Rz' * Ry) * Ry;  % Orthogonalize against gravity
-    Rx = cross(Ry,Rz);
-    Rg = [ Rx Ry Rz ]';
-    H = K * Rg * R' * Kinv;
 
     img = imread(sprintf('Traderjoe/StPaul/image/image%07d.jpg', frame));
-    im_warped = CylindricalProjection(img, H);
+    im_cylindrical = CylindricalProjection(img, R);
+    imwrite(im_cylindrical, sprintf('Traderjoe/StPaul/rectification/cylindrical/image%07d.jpg', frame));
 
-    % new_img = zeros(720,1280,3,'like',img);
-    % for j=1:720
-    %   for k=1:1280
-    %     % u = k;  v = j;
-    %     % rgb = img(j,k,:);
-    %     % pix = K * Rg * R' * Kinv * [ u v 1 ]';
-    %     % pix = pix ./ pix(3);
-    %     % u = pix(1);   v = pix(2);
-
-    %     % % undistort
-    %     % % u_n = (u - px)/fx;
-    %     % % v_n = (v - py)/fy;
-
-    %     % % r_u = sqrt(u_n^2 + v_n^2);
-    %     % % r_d = 1/omega * atan(r_u * tan_omega_half_2);
-
-    %     % % u_dn = r_d/r_u * u_n;
-    %     % % v_dn = r_d/r_u * v_n;
-
-    %     % % u_d = fx*u_dn + px;
-    %     % % v_d = fy*v_dn + py;
-
-    %     % % u_d = int32(u_d);
-    %     % % v_d = int32(v_d);
-
-    %     % u_d = int32(u);
-    %     % v_d = int32(v);
-    %     % if u_d >= 1 & u_d <= 1280 & v_d >= 1 & v_d <= 720
-    %     %   new_img(v_d, u_d, :) = rgb;
-    %     % end
-    %   end
-    % end
-    % imwrite(img, sprintf('Traderjoe/StPaul/rectification/original/image%07d.jpg', frame));
-    imwrite(im_warped, sprintf('Traderjoe/StPaul/rectification/cylindrical/image%07d.jpg', frame));
     % imshow(new_img);
     if mod(i,10) == 0,  disp(sprintf('  Img: %d', i));   end
   end

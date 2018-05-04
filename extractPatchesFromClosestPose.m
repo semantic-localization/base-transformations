@@ -1,4 +1,4 @@
-ver = 800;
+ver = 0;
 disp(sprintf('Ver: %d', ver));
 dir_name = sprintf('reconstruction%07d/point_patches', ver);
 ensureDir(dir_name);

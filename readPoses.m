@@ -1,11 +1,11 @@
 function [frameIds, Rs, Cs] = readPoses(ver)
-  mfile = sprintf('reconstruction%07d/poses.mat', ver);
+  mfile = sprintf('Traderjoe/StPaul//reconstruction%07d/poses.mat', ver);
   if exist(mfile, 'file') == 2
     load(mfile);
     return;
   end
 
-  cfname = sprintf('reconstruction%07d/camera.txt', ver);
+  cfname = sprintf('Traderjoe/StPaul/reconstruction%07d/camera.txt', ver);
   cfid = fopen(cfname);
   for i=1:2, fgetl(cfid); end
 

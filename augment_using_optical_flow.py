@@ -1,3 +1,4 @@
+import pickle
 import numpy as np
 import cv2
 from imageio import imread, imwrite
@@ -21,10 +22,10 @@ def track_patch(image_num, image, sh, sw, old_gray=None, p0=None):
     eh = sh+100
     ew = min(sw+100,1280)
     # Take first frame and find corners in it
-    # if not old_gray:
-    #     old_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    # if not p0:
-    #     p0 = cv2.goodFeaturesToTrack(old_gray, mask = None, **FEATURE_PARAMS)
+    if not old_gray:
+        old_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    if not p0:
+        p0 = cv2.goodFeaturesToTrack(old_gray, mask = None, **FEATURE_PARAMS)
     xs = np.reshape(p0, (-1,2))[:,0]
     ys = np.reshape(p0, (-1,2))[:,1]
     in_patch = (sh <= ys) & (ys < eh) & (sw <= xs) & (xs < ew)
@@ -44,7 +45,7 @@ def track_patch(image_num, image, sh, sw, old_gray=None, p0=None):
         good = d < 1
         if sum(in_patch & good) > 0:
             px, py = map(int, tuple(np.squeeze(p1)[in_patch & good].mean(axis=0)))
-            tp = image[max(0,py-50):min(720,py+50),max(0,px-50):min(1280,px+50),:]
+            tp = frame[max(0,py-50):min(720,py+50),max(0,px-50):min(1280,px+50),:]
             imwrite('tracked_{}_{}_{}_{}.jpg'.format(image_num, image_num-img_num, sw, sh), tp)
 
 
@@ -71,21 +72,21 @@ def confident_enough(sh, sw, labels):
 
 
 if __name__ == '__main__':
-    conf_labels = np.zeros(15)
-    votes = []
-    for image_num in range(500,1500):
-        image = imread('TraderJoe/image/image{:07d}.jpg'.format(image_num))
-        old_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-        p0 = cv2.goodFeaturesToTrack(old_gray, mask = None, **FEATURE_PARAMS)
-        probs, labels = pickle.load(open('TraderJoe/image/labels_{:07d}.pkl'.format(image_num)))
-        for sh in range(0,601,100):
-            for sw in range(0, 1201, 100):
-                ans = confident_enough(sh, sw, labels):
-                if ans:
-                    label, max_votes = ans
-                    conf_labels[label] += 1
-                    votes.append(max_votes)
-                    # track_patch(image_num, image, sh, sw, old_gray, p0)
-    # track_patch(862, imread('TraderJoe/image/image{:07d}.jpg'.format(862)), 500, 300)
+    # conf_labels = np.zeros(15)
+    # votes = []
+    # for image_num in range(500,1500):
+    #     image = imread('TraderJoe/image/image{:07d}.jpg'.format(image_num))
+    #     old_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    #     p0 = cv2.goodFeaturesToTrack(old_gray, mask = None, **FEATURE_PARAMS)
+    #     probs, labels = pickle.load(open('TraderJoe/image/labels_{:07d}.pkl'.format(image_num)))
+    #     for sh in range(0,601,100):
+    #         for sw in range(0, 1201, 100):
+    #             ans = confident_enough(sh, sw, labels)
+    #             if ans:
+    #                 label, max_votes = ans
+    #                 conf_labels[label] += 1
+    #                 votes.append(max_votes)
+    #                 # track_patch(image_num, image, sh, sw, old_gray, p0)
+    track_patch(862, imread('TraderJoe/image/image{:07d}.jpg'.format(862)), 500, 300)
     print('---STATS----')
     import ipdb; ipdb.set_trace()

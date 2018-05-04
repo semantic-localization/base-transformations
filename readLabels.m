@@ -70,7 +70,7 @@ function [labels, frame_labels, label_colors] = readLabels(store)
                 0 .5 0;   % flowers
                 .5 0 .5;  % water
                 0 .5 .5;  % dairy
-                0 0 .5;   % cheese
+                .68 1 .18;% cheese
                 1 .27 0;  % snacks
                 .58 0 .83;% vegetables
                 .82 .41 .12;  % bread
