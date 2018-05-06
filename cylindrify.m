@@ -1,3 +1,7 @@
+for ver=0:200:18800
+  cylindrify(ver);
+end
+
 function [img,new_img] = cylindrify(ver)
   % get votes, labels from here
   disp(sprintf('Ver: %d', ver));

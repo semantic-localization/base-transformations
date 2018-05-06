@@ -1,12 +1,19 @@
 function [frameIds, Rs, Cs] = readPoses(ver)
-  mfile = sprintf('Traderjoe/StPaul//reconstruction%07d/poses.mat', ver);
+  mfile = sprintf('reconstruction%07d/poses.mat', ver);
   if exist(mfile, 'file') == 2
     load(mfile);
     return;
   end
 
-  cfname = sprintf('Traderjoe/StPaul/reconstruction%07d/camera.txt', ver);
+  cfname = sprintf('reconstruction%07d/camera.txt', ver);
   cfid = fopen(cfname);
+  if cfid == -1
+    frameIds = [];
+    Rs = [];
+    Cs = [];
+    return;
+  end
+
   for i=1:2, fgetl(cfid); end
 
   num_poses = textscan(cfid, '%s %d', 1); num_poses = num_poses{2};
