@@ -11,11 +11,17 @@ k = 2000
 
 
 dirs = glob('reconstruction*')
+print('{} camera trajectories'.format(len(dirs)))
 
-for dir_ in dirs:
+for i, dir_ in enumerate(dirs):
+    if (i+1)%5 == 0:  print('  {}'.format(i+1))
     # ver = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    with open('{}/camera.txt'.format(dir_)) as f:
-        cams = np.stack([ list(map(float, line.strip().split())) for i,line in enumerate(f.readlines()) if (i+1) % 5 == 0 ])
+    try:
+        with open('{}/camera.txt'.format(dir_)) as f:
+            cams = np.stack([ list(map(float, line.strip().split())) for i,line in enumerate(f.readlines()) if (i+1) % 5 == 0 ])
+    except FileNotFoundError:
+        continue
+
     num_cams = cams.shape[0]
 
 
@@ -48,6 +54,6 @@ for dir_ in dirs:
             if err < best_err:
                 best_p, best_n, best_err = centroid, n, err
 
-    print(best_err)
-    print(best_n)
+    # print(best_err)
+    # print(best_n)
     savemat('{}/gravity.mat'.format(dir_), { 'gravity': best_n })
