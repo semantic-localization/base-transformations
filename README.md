@@ -2,6 +2,33 @@
 
 #### Work in Progress - hope to make this somewhat comprehensive soon
 TODO - Collect repos in organization
+NOTE - check out `/home/hspark/sharm546/.bashrc` to know which packages need to be loaded (for MSI)
+
+## Frame Extraction
+The following script can be utilized. Note - needs ffmpeg
+```bash
+# might need to resource params
+qsub extract_frames.pbs
+```
+
+## Structure from Motion (SfM)
+A couple of parts
+1. SIFT features' calculation - In the image dir (i.e., directory with image folder), run:
+```bash
+sift++_batch_qsub_jpg.sh
+```
+2. After all the jobs are done - you can check this by looking at the number of \*.key and \*.jpg files : the difference should be 0 or almost 0
+```bash
+RunEgoNQA_zshade.sh
+```
+You can track progress by grep-ing NumPoses in the reconstruction\* folders. Reconstruction is done in batches of 200 (with an overlap of 30 frames). So if there are 18k images, the last folder will have the name reconstruction0017800 - when camera.txt in this folder has NumPoses close to 230, you're done.
+
+Note that there is a limit of 500 jobs per user in MSI. So that's something to be aware of since some of the jobs might be rejected if the queue is getting full
+
+3. 3d point cloud stitching, in parts. Run:
+```bash
+EgoMotionAlignment
+```
 
 ## Rectification
 Producing cylindrical rectifications is a 2-step process:
