@@ -1,0 +1,5 @@
+#!/bin/bash -l        
+#PBS -l walltime=1:00:00,nodes=1:ppn=8,mem=10gb 
+
+cd Traderjoe/Edina
+ffmpeg -i REC00009.MP4 -qscale 1 -vf scale=1280:720 image/image%07d.jpg
