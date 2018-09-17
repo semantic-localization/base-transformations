@@ -1,4 +1,4 @@
-function K = getIntrinsicParams()
+function [K, omega, tan_omega_half_2] = intrinsicParams
   %% Refer calib_fisheye_zshade.txt
   fx = 562.89536;
   fy = 557.29656;
@@ -7,5 +7,5 @@ function K = getIntrinsicParams()
   omega = 1.03815;
   slant = 0;
   tan_omega_half_2 = 2 * tan(omega/2);
-  K = [ fx slant px; 0 fy py; 0 0 1 ] * eye(3,4);  I = eye(4);
+  K = [ fx slant px; 0 fy py; 0 0 1 ];
 end
