@@ -52,49 +52,63 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, P1, R1, C1, P2, R2, C2, K)
   [~,~,V] = svd(Y);
   n = -V(1:3,4)/V(4,4);
   % x1 = X(:,1);  x2 = X(:,2);  x3 = X(:,3);  x4 = X(:,4);
-  X1n = X + 3*unit(n);
+  X1n = X + n;
   % x1n = X1n(:,1);  x2n = X1n(:,2);  x3n = X1n(:,3);  x4n = X1n(:,4);
-  close(fig1, fig2);  fig3 = figure;
+  fig3 = figure;
   scatter3(X(1,:), X(2,:), X(3,:), 'r', 'filled');
   hold on;
   plotPlane(n);
   for i=1:4
     foo = [ X(:,i) X1n(:,i) ];  plot3(foo(1,:), foo(2,:), foo(3,:), 'Color', 'g', 'LineWidth', 2);
   end
-  return;
-  z2 = P2 * [ X X1n ; ones(1,8) ];
+  axis equal;
+  disp(X' * n - 1);
+
+  % Visualize plane normal in I1/I2
+  mul = 5;
+  z1 = P1 * [ X X+mul*n X-mul*n; ones(1,12) ];
+  z1 = z1 ./ z1(3,:);
+  figure(fig1); 
+  for i=1:4   
+    line(z1(1,[i,i+4]), z1(2,[i,i+4]), 'Color', 'b', 'LineWidth', 5);   
+    line(z1(1,[i,i+8]), z1(2,[i,i+8]), 'Color', 'b', 'LineWidth', 5);   
+  end
+  z2 = P2 * [ X X+mul*n X-mul*n; ones(1,12) ];
   z2 = z2 ./ z2(3,:);
   figure(fig2); 
-  for i=1:4   line(z2(1,[i,i+4]), z2(2,[i,i+4]), 'Color', 'b', 'LineWidth', 5);   end
+  for i=1:4   
+    line(z2(1,[i,i+4]), z2(2,[i,i+4]), 'Color', 'b', 'LineWidth', 5);   
+    line(z2(1,[i,i+8]), z2(2,[i,i+8]), 'Color', 'b', 'LineWidth', 5);   
+  end
   % patch(z2(1,:), z2(2,:), 'b');
   % z2 = P2 * [ X(:,7) X(:,8) X(:,8)+n X(:,7)+n; ones(1,4) ];
   % z2 = z2 ./ z2(3,:);
   % patch(z2(1,:), z2(2,:), 'b');
   input('ENTER to proceed ');
-  % figure(fig1); h = findobj('type', 'patch'); delete(h(1));
-  % figure(fig2); h = findobj('type', 'patch'); delete(h(1));
+  figure(fig1); h = findobj('type', 'patch'); delete(h(1));
+  figure(fig2); h = findobj('type', 'patch'); delete(h(1));
 
   % visualize quality of reprojection via n from I1 -> I2
   z2 = reproject(n, u1, R1, C1, P1, K);
-  % figure(fig1);
-  % patch(z2(1,:), z2(2,:), 'g');
+  figure(fig1);
+  patch(z2(1,:), z2(2,:), 'y');
   z2 = reproject(n, u1, R1, C1, P2, K);
-  % figure(fig2);
-  % patch(z2(1,:), z2(2,:), 'g');
+  figure(fig2);
+  patch(z2(1,:), z2(2,:), 'g');
   input('ENTER to proceed ');
-  % figure(fig1); h = findobj('type', 'patch'); delete(h(1));
-  % figure(fig2); h = findobj('type', 'patch'); delete(h(1));
+  figure(fig1); h = findobj('type', 'patch'); delete(h(1));
+  figure(fig2); h = findobj('type', 'patch'); delete(h(1));
 
   % visualize quality of reprojection via n from I2 -> I1
   z2 = reproject(n, u2, R2, C2, P2, K);
-  % figure(fig2);
-  % patch(z2(1,:), z2(2,:), 'g');
+  figure(fig2);
+  patch(z2(1,:), z2(2,:), 'y');
   z2 = reproject(n, u2, R2, C2, P1, K);
-  % figure(fig1);
-  % patch(z2(1,:), z2(2,:), 'g');
+  figure(fig1);
+  patch(z2(1,:), z2(2,:), 'g');
   input('ENTER to proceed ');
-  % figure(fig1); h = findobj('type', 'patch'); delete(h(1));
-  % figure(fig2); h = findobj('type', 'patch'); delete(h(1));
+  figure(fig1); h = findobj('type', 'patch'); delete(h(1));
+  figure(fig2); h = findobj('type', 'patch'); delete(h(1));
 
   %% Non-Linear
   fun = @(n) reprojectionError(n, u1, u2, R1, C1, P2, K) + reprojectionError(n, u2, u1, R2, C2, P1, K);
@@ -119,23 +133,39 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, P1, R1, C1, P2, R2, C2, K)
   % patch(z2(1,:), z2(2,:), 'g');
 
   % normal to X3,X4
-  figure(fig2);
   X = zeros(3,4);
   for i=1:4,  X(:,i) = calculate3D(n, u2(:,i), R2, C2, K);   end
-  X1n = X + 3*unit(n);
+  X1n = X + n;
   % x1n = X1n(:,1);  x2n = X1n(:,2);  x3n = X1n(:,3);  x4n = X1n(:,4);
-  close(fig1, fig2);  fig4 = figure;
+  fig4 = figure;
   scatter3(X(1,:), X(2,:), X(3,:), 'r', 'filled');
   hold on;
   plotPlane(n);
   for i=1:4  
     foo = [ X(:,i) X1n(:,i) ];  plot3(foo(1,:), foo(2,:), foo(3,:), 'Color', 'g', 'LineWidth', 2);   
   end
-  return;
+  axis equal;
+  input('ENTER to proceed ');
+
+  % Visualize plane normal in I1/I2
+  mul = 15;
+  z2 = P2 * [ X X+mul*n X-mul*n ; ones(1,12) ];
   % z2 = P2 * [ X(:,1) X(:,2) X(:,3) X(:,4) X(:,1)-10*unit(n) X(:,2)-10*unit(n) X(:,3)-10*unit(n) X(:,4)-10*unit(n); ones(1,8) ];
-  z2 = P2 * [ X X1n ; ones(1,8) ];
   z2 = z2 ./ z2(3,:);
-  for i=1:4   line(z2(1,[i,i+4]), z2(2,[i,i+4]), 'Color', 'g', 'LineWidth', 5);   end
+  figure(fig2);
+  for i=1:4   
+    line(z2(1,[i,i+4]), z2(2,[i,i+4]), 'Color', 'g', 'LineWidth', 5);   
+    line(z2(1,[i,i+8]), z2(2,[i,i+8]), 'Color', 'g', 'LineWidth', 5);   
+  end
+  for i=1:4,  X(:,i) = calculate3D(n, u1(:,i), R1, C1, K);   end
+  z1 = P1 * [ X X+mul*n X-mul*n ; ones(1,12) ];
+  % z1 = P2 * [ X(:,1) X(:,2) X(:,3) X(:,4) X(:,1)-10*unit(n) X(:,2)-10*unit(n) X(:,3)-10*unit(n) X(:,4)-10*unit(n); ones(1,8) ];
+  z1 = z1 ./ z1(3,:);
+  figure(fig1);
+  for i=1:4   
+    line(z1(1,[i,i+4]), z1(2,[i,i+4]), 'Color', 'g', 'LineWidth', 5);   
+    line(z1(1,[i,i+8]), z1(2,[i,i+8]), 'Color', 'g', 'LineWidth', 5);   
+  end
   % line(z2(1,[1,4]), z2(2,[1,4]), 'Color', 'g', 'LineWidth', 5);
   % line(z2(1,[2,3]), z2(2,[2,3]), 'Color', 'g', 'LineWidth', 5);
   % patch(z2(1,:), z2(2,:), 'g');
@@ -143,7 +173,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, P1, R1, C1, P2, R2, C2, K)
   % visualize quality of reprojection via n from I1 -> I2
   z2 = reproject(n, u1, R1, C1, P1, K);
   figure(fig1);
-  patch(z2(1,:), z2(2,:), 'g');
+  patch(z2(1,:), z2(2,:), 'y');
   z2 = reproject(n, u1, R1, C1, P2, K);
   figure(fig2);
   patch(z2(1,:), z2(2,:), 'g');
@@ -154,7 +184,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, P1, R1, C1, P2, R2, C2, K)
   % visualize quality of reprojection via n from I2 -> I1
   z2 = reproject(n, u2, R2, C2, P2, K);
   figure(fig2);
-  patch(z2(1,:), z2(2,:), 'g');
+  patch(z2(1,:), z2(2,:), 'y');
   z2 = reproject(n, u2, R2, C2, P1, K);
   figure(fig1);
   patch(z2(1,:), z2(2,:), 'g');
@@ -162,7 +192,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, P1, R1, C1, P2, R2, C2, K)
   figure(fig1); h = findobj('type', 'patch'); delete(h(1));
   figure(fig2); h = findobj('type', 'patch'); delete(h(1));
 
-  close(fig1, fig2);
+  close(fig1, fig2, fig3, fig4);
 end
 
 function [err] = reprojectionError(n, u1, u2, R1, C1, P2, K)
@@ -199,14 +229,17 @@ function [v] = projectOntoI2(P2, X)
 end
 
 function plotPlane(n)
-pts = [ -10 -10 10 10; -10 10 10 -10 ];
+a = 5;
+pts = [ -a -a a a; -a a a -a ];
 p = (1 - pts' * [ n(1) n(2) ]') / n(3);
-disp(n);
-disp(p);
+% disp(n);
+% disp(p);
 pts = [ pts; p' ];
 C = [0.5000 1.0000 1.0000 0.5000];
 % for i=1:3,  foo = pts(:,[i,i+1]);  plot3(foo(1,:), foo(2,:), foo(3,:), 'Color', 'r', 'LineWidth', 2);   end
 % foo = pts(:,[4,1]);  plot3(foo(1,:), foo(2,:), foo(3,:), 'Color', 'r', 'LineWidth', 2);
 fill3(pts(1,:), pts(2,:), pts(3,:), C);
 % view(3);
+for i=1:4 p = [ pts(:,i) pts(:,i)+n ]; plot3(p(1,:), p(2,:), p(3,:), 'Color', 'g', 'LineWidth', 2); end
+pts = pts + n;
 end
