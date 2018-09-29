@@ -84,7 +84,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, P1, R1, C1, P2, R2, C2, K)
   % z2 = P2 * [ X(:,7) X(:,8) X(:,8)+n X(:,7)+n; ones(1,4) ];
   % z2 = z2 ./ z2(3,:);
   % patch(z2(1,:), z2(2,:), 'b');
-  input('ENTER to proceed ');
+  % input('ENTER to proceed ');
   figure(fig1); h = findobj('type', 'patch'); delete(h(1));
   figure(fig2); h = findobj('type', 'patch'); delete(h(1));
 
@@ -95,7 +95,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, P1, R1, C1, P2, R2, C2, K)
   z2 = reproject(n, u1, R1, C1, P2, K);
   figure(fig2);
   patch(z2(1,:), z2(2,:), 'g');
-  input('ENTER to proceed ');
+  % input('ENTER to proceed ');
   figure(fig1); h = findobj('type', 'patch'); delete(h(1));
   figure(fig2); h = findobj('type', 'patch'); delete(h(1));
 
@@ -106,7 +106,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, P1, R1, C1, P2, R2, C2, K)
   z2 = reproject(n, u2, R2, C2, P1, K);
   figure(fig1);
   patch(z2(1,:), z2(2,:), 'g');
-  input('ENTER to proceed ');
+  % input('ENTER to proceed ');
   figure(fig1); h = findobj('type', 'patch'); delete(h(1));
   figure(fig2); h = findobj('type', 'patch'); delete(h(1));
 
@@ -135,17 +135,17 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, P1, R1, C1, P2, R2, C2, K)
   % normal to X3,X4
   X = zeros(3,4);
   for i=1:4,  X(:,i) = calculate3D(n, u2(:,i), R2, C2, K);   end
-  X1n = X + n;
+  % X1n = X + n;
   % x1n = X1n(:,1);  x2n = X1n(:,2);  x3n = X1n(:,3);  x4n = X1n(:,4);
-  fig4 = figure;
-  scatter3(X(1,:), X(2,:), X(3,:), 'r', 'filled');
-  hold on;
-  plotPlane(n);
-  for i=1:4  
-    foo = [ X(:,i) X1n(:,i) ];  plot3(foo(1,:), foo(2,:), foo(3,:), 'Color', 'g', 'LineWidth', 2);   
-  end
-  axis equal;
-  input('ENTER to proceed ');
+  % fig4 = figure;
+  % scatter3(X(1,:), X(2,:), X(3,:), 'r', 'filled');
+  % hold on;
+  % plotPlane(n);
+  % for i=1:4  
+  %   foo = [ X(:,i) X1n(:,i) ];  plot3(foo(1,:), foo(2,:), foo(3,:), 'Color', 'g', 'LineWidth', 2);   
+  % end
+  % axis equal;
+  % input('ENTER to proceed ');
 
   % Visualize plane normal in I1/I2
   mul = 15;
@@ -177,7 +177,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, P1, R1, C1, P2, R2, C2, K)
   z2 = reproject(n, u1, R1, C1, P2, K);
   figure(fig2);
   patch(z2(1,:), z2(2,:), 'g');
-  input('ENTER to proceed ');
+  % input('ENTER to proceed ');
   figure(fig1); h = findobj('type', 'patch'); delete(h(1));
   figure(fig2); h = findobj('type', 'patch'); delete(h(1));
 
@@ -188,11 +188,74 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, P1, R1, C1, P2, R2, C2, K)
   z2 = reproject(n, u2, R2, C2, P1, K);
   figure(fig1);
   patch(z2(1,:), z2(2,:), 'g');
-  input('ENTER to proceed ');
+  % input('ENTER to proceed ');
   figure(fig1); h = findobj('type', 'patch'); delete(h(1));
   figure(fig2); h = findobj('type', 'patch'); delete(h(1));
 
-  close(fig1, fig2, fig3, fig4);
+  close(fig2, fig3);
+
+  figure(fig1);
+  h = findobj('type', 'patch'); for i=1:size(h),  delete(h(i)); end
+  x3 = X(:,3);
+  x4 = X(:,4);
+  y = unit(x4 - x3);
+  z = unit(n);
+  x = unit(cross(y,z));
+  x1=x3;  x2=x1+x;  x3=x2+y; x4=x3-x;
+  x5=x1-z;  x6=x2-z;  x7=x3-z;  x8=x4-z;
+  % p = [x1 x2 x3 x4]; z1 = P1 * [ p; ones(1,4) ]; z1 = z1 ./ z1(3,:); patch(z1(1,:), z1(2,:), 'g')
+  % p = [x1 x4 x8 x5]; z1 = P1 * [ p; ones(1,4) ]; z1 = z1 ./ z1(3,:); patch(z1(1,:), z1(2,:), 'g')
+  function drawLines(P1, x1, x2, x3, x4, x5, x6, x7, x8)
+    h = findobj('type', 'line'); for i=1:size(h),  delete(h(i)); end
+    p = [x1 x2];  z1 = P1 * [ p; ones(1,2) ]; z1 = z1 ./ z1(3,:); l1 = line(z1(1,:), z1(2,:), 'Color', 'g');   
+    p = [x2 x3];  z1 = P1 * [ p; ones(1,2) ]; z1 = z1 ./ z1(3,:); l2 = line(z1(1,:), z1(2,:), 'Color', 'g');   
+    p = [x3 x4];  z1 = P1 * [ p; ones(1,2) ]; z1 = z1 ./ z1(3,:); l3 = line(z1(1,:), z1(2,:), 'Color', 'g');   
+    p = [x4 x1];  z1 = P1 * [ p; ones(1,2) ]; z1 = z1 ./ z1(3,:); l4 = line(z1(1,:), z1(2,:), 'Color', 'g');   
+    p = [x5 x6];  z1 = P1 * [ p; ones(1,2) ]; z1 = z1 ./ z1(3,:); l5 = line(z1(1,:), z1(2,:), 'Color', 'g');   
+    p = [x6 x7];  z1 = P1 * [ p; ones(1,2) ]; z1 = z1 ./ z1(3,:); l6 = line(z1(1,:), z1(2,:), 'Color', 'g');   
+    p = [x7 x8];  z1 = P1 * [ p; ones(1,2) ]; z1 = z1 ./ z1(3,:); l7 = line(z1(1,:), z1(2,:), 'Color', 'g');   
+    p = [x8 x5];  z1 = P1 * [ p; ones(1,2) ]; z1 = z1 ./ z1(3,:); l8 = line(z1(1,:), z1(2,:), 'Color', 'g');   
+    p = [x1 x5];  z1 = P1 * [ p; ones(1,2) ]; z1 = z1 ./ z1(3,:); l9 = line(z1(1,:), z1(2,:), 'Color', 'g');   
+    p = [x2 x6];  z1 = P1 * [ p; ones(1,2) ]; z1 = z1 ./ z1(3,:); l10 = line(z1(1,:), z1(2,:), 'Color', 'g');   
+    p = [x3 x7];  z1 = P1 * [ p; ones(1,2) ]; z1 = z1 ./ z1(3,:); l11 = line(z1(1,:), z1(2,:), 'Color', 'g');   
+    p = [x4 x8];  z1 = P1 * [ p; ones(1,2) ]; z1 = z1 ./ z1(3,:); l12 = line(z1(1,:), z1(2,:), 'Color', 'g');   
+  end
+  drawLines(P1, x1, x2, x3, x4, x5, x6, x7, x8);
+
+  function modifyWireframe(k)
+    mul = 0.2;
+    if k == ';'
+      x2=x2+mul*x;  x3=x3+mul*x;  x6=x6+mul*x;  x7=x7+mul*x;
+    elseif k == 'l'
+      x2=x2-mul*x;  x3=x3-mul*x;  x6=x6-mul*x;  x7=x7-mul*x;
+    elseif k == 'a'
+      x1=x1-mul*x;  x4=x4-mul*x;  x5=x5-mul*x;  x8=x8-mul*x;
+    elseif k == 's'
+      x1=x1+mul*x;  x4=x4+mul*x;  x5=x5+mul*x;  x8=x8+mul*x;
+    elseif k == 'd'
+      x3=x3+mul*y;  x4=x4+mul*y;  x7=x7+mul*y;  x8=x8+mul*y;
+    elseif k == 'f'
+      x3=x3-mul*y;  x4=x4-mul*y;  x7=x7-mul*y;  x8=x8-mul*y;
+    elseif k == 'j'
+      x1=x1-mul*y;  x2=x2-mul*y;  x5=x5-mul*y;  x6=x6-mul*y;
+    elseif k == 'k'
+      x1=x1+mul*y;  x2=x2+mul*y;  x5=x5+mul*y;  x6=x6+mul*y;
+    elseif k == 'g'
+      x5=x5-mul*z;  x6=x6-mul*z;  x7=x7-mul*z;  x8=x8-mul*z;
+    elseif k == 'h'
+      x5=x5+mul*z;  x6=x6+mul*z;  x7=x7+mul*z;  x8=x8+mul*z;
+    else
+      ;
+    end
+    drawLines(P1, x1, x2, x3, x4, x5, x6, x7, x8);
+  end
+
+  while true
+    waitforbuttonpress;
+    k = get(gcf, 'CurrentCharacter');
+    if k == 'z', break;  end
+    modifyWireframe(k);
+  end
 end
 
 function [err] = reprojectionError(n, u1, u2, R1, C1, P2, K)
