@@ -256,6 +256,28 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, P1, R1, C1, P2, R2, C2, K)
     if k == 'z', break;  end
     modifyWireframe(k);
   end
+
+  save('points.mat', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8');
+
+  [fs, Rs, Cs] = readPoses(0);
+  close(fig1);
+  fig = gcf;
+  fig.PaperPositionMode = 'auto';
+  % set(fig, 'visible', 'off');
+  for i=1:size(fs,1)
+    disp(fs(i));
+    imgname = sprintf('image%07d.jpg', fs(i));
+    dirname = 'undistorted';
+    imgpath = sprintf('%s/%s', dirname, imgname);
+    I = imread(imgpath);
+    R = reshape(Rs(i,1:3,1:3), [3,3]);  C = reshape(Cs(i,:), [3,1]);
+    P = K * R * [ eye(3) -C ];
+    imshow(I);
+    drawLines(P, x1, x2, x3, x4, x5, x6, x7, x8);
+    dirname = 'annotated';
+    imgpath = sprintf('%s/%s', dirname, imgname);
+    print(imgpath, '-djpeg', '-r0');
+  end
 end
 
 function [err] = reprojectionError(n, u1, u2, R1, C1, P2, K)
