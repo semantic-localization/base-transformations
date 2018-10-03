@@ -15,15 +15,22 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
   cfile = sprintf('reconstruction%07d/clicks.mat', ver);
     if use_file && exist(cfile, 'file') == 2
       load(cfile);
+      figure(fig1);
+      patch(u1(1,[1,2,4,3]), u1(2,[1,2,4,3]), 'r')
+      figure(fig2);
+      patch(u2(1,[1,2,4,3]), u2(2,[1,2,4,3]), 'r')
     else
       figure(fig1);
       [x1, y1] = ginput(4);
       u1 = [ x1'; y1'; ones(1,4) ];
+      patch(u1(1,[1,2,4,3]), u1(2,[1,2,4,3]), 'r')
 
       % pause(1);
       figure(fig2);
       [x2, y2] = ginput(4);
       u2 = [ x2'; y2'; ones(1,4) ];
+      patch(u2(1,[1,2,4,3]), u2(2,[1,2,4,3]), 'r')
+
       save(cfile, 'u1', 'u2');
     end
   end
@@ -36,12 +43,12 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
     use_file = false;
     % patch(u1(1,[1,2,6,5]), u1(2,[1,2,6,5]), 'r')
     % patch(u1(1,[3,4,8,7]), u1(2,[3,4,8,7]), 'r')
-    figure(fig1);
-    patch(u1(1,[1,2,3,4]), u1(2,[1,2,3,4]), 'r')
+    % figure(fig1);
+    % patch(u1(1,[1,2,4,3]), u1(2,[1,2,4,3]), 'r')
     % patch(u2(1,[1,2,6,5]), u2(2,[1,2,6,5]), 'r')
     % patch(u2(1,[3,4,8,7]), u2(2,[3,4,8,7]), 'r')
-    figure(fig2);
-    patch(u2(1,[1,2,3,4]), u2(2,[1,2,3,4]), 'r')
+    % figure(fig2);
+    % patch(u2(1,[1,2,4,3]), u2(2,[1,2,4,3]), 'r')
     % input('ENTER to proceed ');
 
     %% Linear LS
@@ -112,10 +119,10 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
     % visualize quality of reprojection via n from I1 -> I2
     z2 = reproject(n, u1, R1, C1, P1, K);
     figure(fig1);
-    patch(z2(1,:), z2(2,:), 'y');
+    patch(z2(1,[1,2,4,3]), z2(2,[1,2,4,3]), 'y');
     z2 = reproject(n, u1, R1, C1, P2, K);
     figure(fig2);
-    patch(z2(1,:), z2(2,:), 'g');
+    patch(z2(1,[1,2,4,3]), z2(2,[1,2,4,3]), 'g');
     % input('ENTER to proceed ');
     figure(fig1); h = findobj('type', 'patch'); delete(h(1));
     figure(fig2); h = findobj('type', 'patch'); delete(h(1));
@@ -123,10 +130,10 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
     % visualize quality of reprojection via n from I2 -> I1
     z2 = reproject(n, u2, R2, C2, P2, K);
     figure(fig2);
-    patch(z2(1,:), z2(2,:), 'y');
+    patch(z2(1,[1,2,4,3]), z2(2,[1,2,4,3]), 'y');
     z2 = reproject(n, u2, R2, C2, P1, K);
     figure(fig1);
-    patch(z2(1,:), z2(2,:), 'g');
+    patch(z2(1,[1,2,4,3]), z2(2,[1,2,4,3]), 'g');
     % input('ENTER to proceed ');
     figure(fig1); h = findobj('type', 'patch'); delete(h(1));
     figure(fig2); h = findobj('type', 'patch'); delete(h(1));
@@ -194,10 +201,10 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
     % visualize quality of reprojection via n from I1 -> I2
     z2 = reproject(n, u1, R1, C1, P1, K);
     figure(fig1);
-    patch(z2(1,:), z2(2,:), 'y');
+    patch(z2(1,[1,2,4,3]), z2(2,[1,2,4,3]), 'y');
     z2 = reproject(n, u1, R1, C1, P2, K);
     figure(fig2);
-    patch(z2(1,:), z2(2,:), 'g');
+    patch(z2(1,[1,2,4,3]), z2(2,[1,2,4,3]), 'g');
     % input('ENTER to proceed ');
     s = input('Normal OK? ', 's');  if s(1) == 'y', break;  end
     figure(fig1); h = findobj('type', 'patch'); delete(h(1));
@@ -206,10 +213,10 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
     % visualize quality of reprojection via n from I2 -> I1
     z2 = reproject(n, u2, R2, C2, P2, K);
     figure(fig2);
-    patch(z2(1,:), z2(2,:), 'y');
+    patch(z2(1,[1,2,4,3]), z2(2,[1,2,4,3]), 'y');
     z2 = reproject(n, u2, R2, C2, P1, K);
     figure(fig1);
-    patch(z2(1,:), z2(2,:), 'g');
+    patch(z2(1,[1,2,4,3]), z2(2,[1,2,4,3]), 'g');
     % input('ENTER to proceed ');
     figure(fig1); h = findobj('type', 'patch'); delete(h(1));
     figure(fig2); h = findobj('type', 'patch'); delete(h(1));
@@ -222,10 +229,10 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
   figure(fig1); h = findobj('type', 'patch'); for i=1:size(h),  delete(h(i)); end
   figure(fig2); h = findobj('type', 'patch'); for i=1:size(h),  delete(h(i)); end
   z = unit(n);
-  x1 = X(:,1);
-  x2 = X(:,2);
-  x3 = X(:,3);
-  x4 = X(:,4);
+  y1 = X(:,1);
+  y2 = X(:,2);
+  y3 = X(:,3);
+  y4 = X(:,4);
   function drawLines(x1, x2, x3, x4, x5, x6, x7, x8, drawI2)
     h = findobj('type', 'line'); for i=1:size(h),  delete(h(i)); end
     drawLinesHelper(P1, x1, x2, x3, x4, x5, x6, x7, x8);
@@ -307,8 +314,14 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
     'water', 
     'none'
     };
-  labels = [];
-  sections = [];
+
+
+  annotationsFile = sprintf('reconstruction%07d/3dannotations.mat', ver);
+  if exist(annotationsFile, 'file') == 2
+    load(annotationsFile);
+  else
+    labels = [];  sections = [];
+  end
   while true
     s = input('Record section? - y/n ', 's');  
     if s(1) == 'n'
@@ -317,11 +330,11 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
 
     s = input('Section aligned with left or right? ', 's');  
     if s(1) == 'l'
-      y = unit(x4 - x3);
-      x1 = x3;
+      y = unit(y4 - y3);
+      x1 = y3;
     else
-      y = unit(x2 - x1);
-      x1 = x1;
+      y = unit(y2 - y1);
+      x1 = y1;
     end
     x = unit(cross(y,z));
     % p = [x1 x2 x3 x4]; z1 = P1 * [ p; ones(1,4) ]; z1 = z1 ./ z1(3,:); patch(z1(1,:), z1(2,:), 'g')
@@ -348,7 +361,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
     section = [ x1 x2 x3 x4 x5 x6 x7 x8 ];
     sections = [ sections reshape(section, [1,3,8]) ];
   end
-  save(sprintf('reconstruction%07d/3dannotations.mat', ver), 'labels', 'sections');
+  save(annotationsFile, 'labels', 'sections');
   return;
 
   l = [ x1 x4 x5 x8 ];
