@@ -77,8 +77,13 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
     % patch(z2(1,[3,4,8,7]), z2(2,[3,4,8,7]), 'b')
     patch(z2(1,[1,2,3,4]), z2(2,[1,2,3,4]), 'b')
 
-    [~,~,V] = svd(Y);
-    n = -V(1:3,4)/V(4,4);
+    disp(X);
+    centroid = mean(X');
+    centeredX = X' - centroid;
+    [~,Sig,V] = svd(centeredX);
+    n = V(:,3);
+    distance = n' * centroid';
+    n = n/distance; % distance now equals 1
     % x1 = X(:,1);  x2 = X(:,2);  x3 = X(:,3);  x4 = X(:,4);
     X1n = X + n;
     % x1n = X1n(:,1);  x2n = X1n(:,2);  x3n = X1n(:,3);  x4n = X1n(:,4);
@@ -90,24 +95,26 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
       foo = [ X(:,i) X1n(:,i) ];  plot3(foo(1,:), foo(2,:), foo(3,:), 'Color', 'g', 'LineWidth', 2);
     end
     axis equal;
-    disp(X' * n - 1);
+    % disp(X' * n - 1);
 
     % Visualize plane normal in I1/I2
     mul = 5;
-    z1 = P1 * [ X X+mul*n X-mul*n; ones(1,12) ];
+    z1 = P1 * [ X X+mul*unit(n) X-mul*unit(n); ones(1,12) ];
     z1 = z1 ./ z1(3,:);
     figure(fig1); 
     for i=1:4   
       line(z1(1,[i,i+4]), z1(2,[i,i+4]), 'Color', 'b', 'LineWidth', 5);   
       line(z1(1,[i,i+8]), z1(2,[i,i+8]), 'Color', 'b', 'LineWidth', 5);   
     end
-    z2 = P2 * [ X X+mul*n X-mul*n; ones(1,12) ];
+    z2 = P2 * [ X X+mul*unit(n) X-mul*unit(n); ones(1,12) ];
     z2 = z2 ./ z2(3,:);
     figure(fig2); 
     for i=1:4   
       line(z2(1,[i,i+4]), z2(2,[i,i+4]), 'Color', 'b', 'LineWidth', 5);   
       line(z2(1,[i,i+8]), z2(2,[i,i+8]), 'Color', 'b', 'LineWidth', 5);   
     end
+    s = input('LS Normal OK? ', 's');  if s(1) == 'y', break;  end
+    keyboard();
     % patch(z2(1,:), z2(2,:), 'b');
     % z2 = P2 * [ X(:,7) X(:,8) X(:,8)+n X(:,7)+n; ones(1,4) ];
     % z2 = z2 ./ z2(3,:);
@@ -141,7 +148,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
     %% Non-Linear
     fun = @(n) reprojectionError(n, u1, u2, R1, C1, P2, K) + reprojectionError(n, u2, u1, R2, C2, P1, K);
     options = optimoptions(@fminunc,'Display','iter','Algorithm','quasi-newton','OptimalityTolerance',1e-12,'MaxFunctionEvaluations',1000);
-    [n,fval,exitflag,output] = fminunc(fun, n, options)
+    [n,fval,exitflag,output] = fminunc(fun, n, options);
 
     % Patch 1, reproject onto I2 using n and I1
     % z2 = [];
@@ -177,7 +184,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
 
     % Visualize plane normal in I1/I2
     mul = 15;
-    z2 = P2 * [ X X+mul*n X-mul*n ; ones(1,12) ];
+    z2 = P2 * [ X X+mul*unit(n) X-mul*unit(n) ; ones(1,12) ];
     % z2 = P2 * [ X(:,1) X(:,2) X(:,3) X(:,4) X(:,1)-10*unit(n) X(:,2)-10*unit(n) X(:,3)-10*unit(n) X(:,4)-10*unit(n); ones(1,8) ];
     z2 = z2 ./ z2(3,:);
     figure(fig2);
@@ -186,7 +193,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
       line(z2(1,[i,i+8]), z2(2,[i,i+8]), 'Color', 'g', 'LineWidth', 5);   
     end
     for i=1:4,  X(:,i) = calculate3D(n, u1(:,i), R1, C1, K);   end
-    z1 = P1 * [ X X+mul*n X-mul*n ; ones(1,12) ];
+    z1 = P1 * [ X X+mul*unit(n) X-mul*unit(n) ; ones(1,12) ];
     % z1 = P2 * [ X(:,1) X(:,2) X(:,3) X(:,4) X(:,1)-10*unit(n) X(:,2)-10*unit(n) X(:,3)-10*unit(n) X(:,4)-10*unit(n); ones(1,8) ];
     z1 = z1 ./ z1(3,:);
     figure(fig1);
@@ -206,6 +213,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
     figure(fig2);
     patch(z2(1,[1,2,4,3]), z2(2,[1,2,4,3]), 'g');
     % input('ENTER to proceed ');
+    keyboard();
     s = input('Normal OK? ', 's');  if s(1) == 'y', break;  end
     figure(fig1); h = findobj('type', 'patch'); delete(h(1));
     figure(fig2); h = findobj('type', 'patch'); delete(h(1));
@@ -229,6 +237,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
   figure(fig1); h = findobj('type', 'patch'); for i=1:size(h),  delete(h(i)); end
   figure(fig2); h = findobj('type', 'patch'); for i=1:size(h),  delete(h(i)); end
   z = unit(n);
+  disp(X);
   y1 = X(:,1);
   y2 = X(:,2);
   y3 = X(:,3);
@@ -282,6 +291,8 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
       x1=x1+mul*z;  x2=x2+mul*z;  x3=x3+mul*z;  x4=x4+mul*z;
     elseif k == 'u'
       x1=x1-mul*z;  x2=x2-mul*z;  x3=x3-mul*z;  x4=x4-mul*z;
+    elseif k == 'i'
+      keyboard();
     else
       ;
     end
@@ -362,6 +373,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
     sections = [ sections reshape(section, [1,3,8]) ];
   end
   save(annotationsFile, 'labels', 'sections');
+  close(fig1,fig2);
   return;
 
   l = [ x1 x4 x5 x8 ];
