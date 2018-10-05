@@ -114,7 +114,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
       line(z2(1,[i,i+8]), z2(2,[i,i+8]), 'Color', 'b', 'LineWidth', 5);   
     end
     s = input('LS Normal OK? ', 's');  if s(1) == 'y', break;  end
-    keyboard();
+    % keyboard();
     % patch(z2(1,:), z2(2,:), 'b');
     % z2 = P2 * [ X(:,7) X(:,8) X(:,8)+n X(:,7)+n; ones(1,4) ];
     % z2 = z2 ./ z2(3,:);
@@ -213,7 +213,7 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
     figure(fig2);
     patch(z2(1,[1,2,4,3]), z2(2,[1,2,4,3]), 'g');
     % input('ENTER to proceed ');
-    keyboard();
+    % keyboard();
     s = input('Normal OK? ', 's');  if s(1) == 'y', break;  end
     figure(fig1); h = findobj('type', 'patch'); delete(h(1));
     figure(fig2); h = findobj('type', 'patch'); delete(h(1));
@@ -339,21 +339,27 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
       break;  
     end
 
-    s = input('Section aligned with left or right? ', 's');  
+    s = input('Section aligned with left, right, back? (l/r/b) - ', 's');  
     if s(1) == 'l'
       y = unit(y4 - y3);
+      x = unit(cross(y,z));
       x1 = y3;
-    else
+    elseif s(1) == 'r'
       y = unit(y2 - y1);
+      x = unit(cross(y,z));
       x1 = y1;
+    elseif s(1) == 'b'
+      x = unit(y2 - y4);
+      y = unit(cross(z,x));
+      x1 = y4;
     end
-    x = unit(cross(y,z));
     % p = [x1 x2 x3 x4]; z1 = P1 * [ p; ones(1,4) ]; z1 = z1 ./ z1(3,:); patch(z1(1,:), z1(2,:), 'g')
     % p = [x1 x4 x8 x5]; z1 = P1 * [ p; ones(1,4) ]; z1 = z1 ./ z1(3,:); patch(z1(1,:), z1(2,:), 'g')
 
     x2=x1+x;  x3=x2+y; x4=x3-x;
     x5=x1-z;  x6=x2-z;  x7=x3-z;  x8=x4-z;
     drawLines(x1, x2, x3, x4, x5, x6, x7, x8, false);
+    % wireframe modif
     while true
       figure(fig1);
       waitforbuttonpress;
@@ -361,16 +367,17 @@ function [n,u1,u2] = findPlaneNormal(I1, I2, R1, C1, R2, C2, K, ver)
       if k == 'z', break;  end
       modifyWireframe(k);
     end
+    % label until user gets it right
     while true
       user_label = input('Enter label: ', 's');
       label = find(strcmp(labelkey, user_label));
       if label
-        labels = [ labels label ];
+        labels = [ labels; label ];
         break;
       end
     end
     section = [ x1 x2 x3 x4 x5 x6 x7 x8 ];
-    sections = [ sections reshape(section, [1,3,8]) ];
+    sections = [ sections; reshape(section, [1,3,8]) ];
   end
   save(annotationsFile, 'labels', 'sections');
   close(fig1,fig2);
