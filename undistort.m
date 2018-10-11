@@ -7,9 +7,8 @@ for ver=1200:200:1400
 
   for i=1:num_poses
     frame = ver+frameIds(i);
-    R = reshape(Rs(i,1:3,1:3), [3,3]);  C = reshape(Cs(i,:), [3,1]);
     img = imread(sprintf('image/image%07d.jpg', frame));
-    im_undistorted = Undistort(img, R, C);
+    im_undistorted = Undistort(img);
     imwrite(im_undistorted, sprintf('undistorted/image%07d.jpg', frame));
   end
 

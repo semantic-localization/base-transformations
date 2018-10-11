@@ -1,4 +1,4 @@
-function im_undistorted = Undistort(im, R, C)
+function im_undistorted = Undistort(im)
 %% Prep
 im = double(im);
 
