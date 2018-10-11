@@ -1,8 +1,16 @@
 function im_undistorted = Undistort(im, R, C)
 %% Prep
 im = double(im);
-% Refer calib_fisheye_zshade.txt
-[K, omega, tan_omega_half_2] = intrinsicParams();
+
+% Intrinsic params
+fx = 562.89536;
+fy = 557.29656;
+px = 630.7712;
+py = 363.16152;
+omega = 1.03815;
+slant = 0;
+tan_omega_half_2 = 2 * tan(omega/2);
+K = [ fx slant px; 0 fy py; 0 0 1 ];
 
 
 [u_x, u_y] = meshgrid(1:(size(im,2)), 1:(size(im,1)));
