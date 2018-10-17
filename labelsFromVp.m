@@ -69,7 +69,8 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
     'snacks', 
     'vegetables', 
     'water', 
-    'none'
+    'none',
+    'toiletries'
     };
   annotationsFile = sprintf('reconstruction%07d/vp_3dannotations.mat', ver);
   if exist(annotationsFile, 'file') == 2
@@ -124,7 +125,7 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
   vis = figure();
   [fs,~,Cs] = readPoses(ver);
   inc = linspace(0,1,size(fs,1));
-  cls = [ ones(size(fs))-inc' zeros(size(fs))+inc' zeros(230,1) ];
+  cls = [ ones(size(fs))-inc' zeros(size(fs))+inc' zeros(size(fs)) ];
   linecls = [ 'r', 'g', 'b', 'k' ];
   [num_pt, pts, ~] = readPointCloud(ver);
   [~,I] = sort(fs);
