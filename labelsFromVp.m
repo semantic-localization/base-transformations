@@ -46,7 +46,7 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
   pt = A \ b;
   w1 = P1 * [pt; 1];  w1 = w1 / w1(3);   disp(sprintf('Reprojection error on I1: %f', norm(w1-u1)));
   w2 = P2 * [pt; 1];  w2 = w2 / w2(3);   disp(sprintf('Reprojection error on I2: %f', norm(w2-u2)));
-  disp('Origin projection: '); disp(P1 * [pt; ones(1,1)]);
+  disp('Origin projection: ');  disp(P1 * [pt; ones(1,1)]);
 
   % point from where to start drawing box
   % p = (rvp+lvp)/2;
@@ -120,8 +120,20 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
     end
   end
 
+  % Visualize 3d space, cam trajectory
+  vis = figure();
+  inc = linspace(0,1,230);
+  cls = [ ones(230,1)-inc' zeros(230,1)+inc' zeros(230,1) ];
+  linecls = [ 'r', 'g', 'b', 'k' ];
+  [fs,~,Cs] = readPoses(ver);
+  [~,I] = sort(fs);
+  sCs = Cs(I,:);
+  scatter3(sCs(:,1), sCs(:,2), sCs(:,3), 10, cls, '+');
+  hold on;
+
   % LABEL SECTIONS
   while true
+    figure(fig1);
     x1 = pt;  x2 = x1 + x;  x3 = x2 + y;  x4 = x1 + y;
     x5 = x1 - z;  x6 = x2 - z;  x7 = x3 - z;  x8 = x4 - z;
 
@@ -163,6 +175,16 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
         break;
       end
     end
+
+    % 3d visualization
+    figure(vis);
+    xlims = xlim();   xlim([min([section(1,:) xlims(1)]), max([section(1,:) xlims(2)])]);
+    ylims = ylim();   ylim([min([section(2,:) ylims(1)]), max([section(2,:) ylims(2)])]);
+    zlims = zlim();   zlim([min([section(3,:) zlims(1)]), max([section(3,:) zlims(2)])]);
+    for i=1:4,  plot3(section(1,[i,1+mod(i,4)]), section(2,[i,1+mod(i,4)]), section(3,[i,1+mod(i,4)]), linecls(i)); end
+    for i=5:8,  plot3(section(1,[i,5+mod(i,4)]), section(2,[i,5+mod(i,4)]), section(3,[i,5+mod(i,4)]), linecls(i-4)); end
+    for i=1:4,  plot3(section(1,[i,i+4]), section(2,[i,i+4]), section(3,[i,i+4]), linecls(i)); end
+    input('Ctrl-C and restart if scaled badly.');
 
     % label until user gets it right
     while true
