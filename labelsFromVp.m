@@ -122,14 +122,23 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
 
   % Visualize 3d space, cam trajectory
   vis = figure();
-  inc = linspace(0,1,230);
-  cls = [ ones(230,1)-inc' zeros(230,1)+inc' zeros(230,1) ];
-  linecls = [ 'r', 'g', 'b', 'k' ];
   [fs,~,Cs] = readPoses(ver);
+  inc = linspace(0,1,size(fs,1));
+  cls = [ ones(size(fs))-inc' zeros(size(fs))+inc' zeros(230,1) ];
+  linecls = [ 'r', 'g', 'b', 'k' ];
+  [num_pt, pts, ~] = readPointCloud(ver);
   [~,I] = sort(fs);
   sCs = Cs(I,:);
-  scatter3(sCs(:,1), sCs(:,2), sCs(:,3), 10, cls, '+');
+  % Cam trajectory
+  scatter3(sCs(:,1), sCs(:,2), sCs(:,3), 20, cls, '+');
   hold on;
+  axis equal;
+  axis normal;
+  xlims = xlim();   xlim([min([prctile(pts(:,1), 5) xlims(1)]), max([prctile(pts(:,1), 95) xlims(2)])]);
+  ylims = ylim();   ylim([min([prctile(pts(:,2), 5) ylims(1)]), max([prctile(pts(:,2), 95) ylims(2)])]);
+  zlims = zlim();   zlim([min([prctile(pts(:,3), 5) zlims(1)]), max([prctile(pts(:,3), 95) zlims(2)])]);
+  % Point cloud
+  scatter3(pts(:,1), pts(:,2), pts(:,3), 2, 'k');
 
   % LABEL SECTIONS
   while true
@@ -184,7 +193,7 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
     for i=1:4,  plot3(section(1,[i,1+mod(i,4)]), section(2,[i,1+mod(i,4)]), section(3,[i,1+mod(i,4)]), linecls(i)); end
     for i=5:8,  plot3(section(1,[i,5+mod(i,4)]), section(2,[i,5+mod(i,4)]), section(3,[i,5+mod(i,4)]), linecls(i-4)); end
     for i=1:4,  plot3(section(1,[i,i+4]), section(2,[i,i+4]), section(3,[i,i+4]), linecls(i)); end
-    input('Ctrl-C and restart if scaled badly.');
+    input('Ctrl-C and restart if scaled badly.','s');
 
     % label until user gets it right
     while true
@@ -196,13 +205,13 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
       end
     end
     sections = [ sections; reshape(section, [1,3,8]) ];
+    save(annotationsFile, 'labels', 'sections');
 
     s = input('Record another section? - y/n ', 's');  
     if s(1) == 'n'
       break;  
     end
   end
-  save(annotationsFile, 'labels', 'sections');
   close(fig1,fig2);
 end
 
