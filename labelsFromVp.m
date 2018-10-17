@@ -44,8 +44,9 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
   A = [ u1x * P1(:,1:3); u2x * P2(:,1:3) ];
   b = [ -u1x * P1(:,4); -u2x * P2(:,4) ];
   pt = A \ b;
-  disp('Origin projection: ');
-  disp(P1 * [pt; ones(1,1)]);
+  w1 = P1 * [pt; 1];  w1 = w1 / w1(3);   disp(sprintf('Reprojection error on I1: %f', norm(w1-u1)));
+  w2 = P2 * [pt; 1];  w2 = w2 / w2(3);   disp(sprintf('Reprojection error on I2: %f', norm(w2-u2)));
+  disp('Origin projection: '); disp(P1 * [pt; ones(1,1)]);
 
   % point from where to start drawing box
   % p = (rvp+lvp)/2;
