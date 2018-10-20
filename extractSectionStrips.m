@@ -73,20 +73,19 @@ function extractSectionStrips(ver, sectionId, orientation)
       lft = Pn * lft3d;
       rgt = Pn * rgt3d;
       % keyboard();
-      if lft(3) > 0 && rgt(3) > 0
+      if ~(lft(3) > 0 && rgt(3) > 0)
+        disp('One point behind camera');
+      else
         lft = lft / lft(3);
         rgt = rgt / rgt(3);
         lftbtm = Pn * lftbtm3d;  lftbtm = lftbtm / lftbtm(3);
         top = round(max(1,lft(2)));  btm = round(min(720,lftbtm(2)));
-        % keyboard();
-        % assert(rgt(3) - lft(3) < 1e-8);
-        % scale = lft(3);
-        % lft = lft/scale;  rgt = rgt/scale;
         ckpts = lft(1):100:rgt(1);    % only x-coord will vary on x2-x3 line
         lidx = min(find(ckpts >= 1));
         ridx = max(find(ckpts <= 1280));
         % keyboard();
         if isempty(lidx) || isempty(ridx)
+          disp('No strip completely in frame');
           % disp(sprintf('%d - nothing here: is this black img?', fs(i)));
           % keyboard();
         else
