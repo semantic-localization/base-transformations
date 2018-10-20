@@ -213,7 +213,7 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
       break;  
     end
   end
-  close(fig1,fig2);
+  close(fig1,fig2,vis);
 end
 
 
