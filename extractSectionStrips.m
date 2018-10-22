@@ -1,4 +1,4 @@
-function extractSectionStrips(ver, sectionId, orientation)
+function extractSectionStrips(ver, sectionId, orientation, alpha)
   K = getIntrinsicParams(); K = K(:,1:3);
   fig = gcf;
 
@@ -12,8 +12,14 @@ function extractSectionStrips(ver, sectionId, orientation)
     y = unit(x4-x1);
     z = unit(x1-x5);
 
+    if nargin < 4
+      alpha = 1;
+    end
     if strcmp(orientation, 'left')
       %% Left section-aware rectification
+      %% x vector as cross product when not perfectly orthogonal
+      % x = unit(cross(y,z));
+      y = unit(alpha*y + (1-alpha)*x);
       Rn = [ y -z -x ]';
       lft3d = [ x2; 1 ];  lftbtm3d = [ x6; 1 ];
       rgt3d = [ x3; 1 ];
@@ -31,7 +37,7 @@ function extractSectionStrips(ver, sectionId, orientation)
       rgt3d = [ x2; 1 ];
     elseif strcmp(orientation, 'far_right')
       %% eg: meat from far in StPaul
-      y = unit((x+y)/2);
+      y = unit(alpha*y + (1-alpha)*x);
       x = unit(cross(y,z));
       Rn = [ x -z y ]';
       lft3d = [ x4; 1 ];  lftbtm3d = [ x8; 1 ];
@@ -56,7 +62,7 @@ function extractSectionStrips(ver, sectionId, orientation)
       ax.Position = [left bottom ax_width ax_height];
 
       % single img exp
-      % if fs(i) ~= 180, continue; end
+      % if fs(i) ~= 15, continue; end
 
       I = imread(sprintf('undistorted/image%07d.jpg', fs(i)+ver));
       R = reshape(Rs(i,1:3,1:3), [3,3]);
