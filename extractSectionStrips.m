@@ -14,12 +14,14 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
 
     if nargin < 4
       alpha = 1;
+    else
+      y = unit(alpha*y + (1-alpha)*x);
+      x = unit(cross(y,z));
     end
     if strcmp(orientation, 'left')
       %% Left section-aware rectification
       %% x vector as cross product when not perfectly orthogonal
       % x = unit(cross(y,z));
-      y = unit(alpha*y + (1-alpha)*x);
       Rn = [ y -z -x ]';
       lft3d = [ x2; 1 ];  lftbtm3d = [ x6; 1 ];
       rgt3d = [ x3; 1 ];
@@ -35,10 +37,9 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
       Rn = [ x -z y ]';
       lft3d = [ x1; 1 ];  lftbtm3d = [ x5; 1 ];
       rgt3d = [ x2; 1 ];
+    %% Subtle diff; notice lft3d & rgt3d
     elseif strcmp(orientation, 'far_right')
       %% eg: meat from far in StPaul
-      y = unit(alpha*y + (1-alpha)*x);
-      x = unit(cross(y,z));
       Rn = [ x -z y ]';
       lft3d = [ x4; 1 ];  lftbtm3d = [ x8; 1 ];
       rgt3d = [ x1; 1 ];
@@ -95,7 +96,11 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
           % disp(sprintf('%d - nothing here: is this black img?', fs(i)));
           % keyboard();
         else
-          pts = [ ckpts(lidx:ridx); repmat((top+btm)/2, 1, ridx-lidx+1) ];
+          pts_onefourth = [ ckpts(lidx:ridx); repmat((3*top+btm)/4, 1, ridx-lidx+1) ];
+          pts_onehalf = [ ckpts(lidx:ridx); repmat((top+btm)/2, 1, ridx-lidx+1) ];
+          pts_threefourth = [ ckpts(lidx:ridx); repmat((top+3*btm)/4, 1, ridx-lidx+1) ];
+          pts = [ pts_onefourth; pts_onehalf; pts_threefourth ];
+          pts = reshape(pts, 2, []);
           pts_rgb = [];
           try
             pts_rgb(:,1) = interp2(In(:,:,1), pts(1,:), pts(2,:));
@@ -108,9 +113,10 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
           % keyboard();
 
           for j=1:ridx-lidx
-            lftpt = pts_rgb(j,:);
-            rgtpt = pts_rgb(j+1,:);
-            if norm(lftpt) == 0 && norm(rgtpt) == 0
+            % lftpt = pts_rgb(j,:);
+            % rgtpt = pts_rgb(j+1,:);
+            % if norm(lftpt) == 0 && norm(rgtpt) == 0
+            if norm(pts_rgb(3*j-2:3*j+3,:)) == 0    % all 6 points considered zero
               continue;
             else
               n = n+1;
