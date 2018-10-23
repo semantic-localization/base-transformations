@@ -62,7 +62,7 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
       ax.Position = [left bottom ax_width ax_height];
 
       % single img exp
-      % if fs(i) ~= 15, continue; end
+      if mod(fs(i),5) ~= 0, continue; end
 
       I = imread(sprintf('undistorted/image%07d.jpg', fs(i)+ver));
       R = reshape(Rs(i,1:3,1:3), [3,3]);
@@ -95,7 +95,7 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
           % disp(sprintf('%d - nothing here: is this black img?', fs(i)));
           % keyboard();
         else
-          pts = [ ckpts(lidx:ridx); repmat(top, 1, ridx-lidx+1) ];
+          pts = [ ckpts(lidx:ridx); repmat((top+btm)/2, 1, ridx-lidx+1) ];
           pts_rgb = [];
           try
             pts_rgb(:,1) = interp2(In(:,:,1), pts(1,:), pts(2,:));
