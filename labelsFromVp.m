@@ -52,26 +52,7 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
   % p = (rvp+lvp)/2;
   % pt = R1' * inv(K) * [ p 1 ]' + C1;
 
-  labelkey = {
-    'beverages', 
-    'bread', 
-    'cereal', 
-    'cheese', 
-    'counter', 
-    'dairy', 
-    'entrance', 
-    'flowers', 
-    'frozenfood', 
-    'health', 
-    'meat', 
-    'oils', 
-    'pasta', 
-    'snacks', 
-    'vegetables', 
-    'water', 
-    'none',
-    'toiletries'
-    };
+  labelkey = getLabelKey();
   annotationsFile = sprintf('reconstruction%07d/vp_3dannotations.mat', ver);
   if exist(annotationsFile, 'file') == 2
     load(annotationsFile);
