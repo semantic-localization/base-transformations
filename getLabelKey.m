@@ -16,6 +16,8 @@ function labelkey = getLabelKey()
     'snacks', 
     'vegetables', 
     'water', 
-    'none'
+    'none',
+    'toiletries',
+    'tea_coffee'
   };
 end
