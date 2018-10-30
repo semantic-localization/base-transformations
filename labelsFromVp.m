@@ -60,8 +60,9 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
     labels = [];  sections = [];
   end
 
-  x1 = pt;  x2 = x1 + 5*x;  x3 = x2 + 5*y;  x4 = x1 + 5*y;
-  x5 = x1 - 5*z;  x6 = x2 - 5*z;  x7 = x3 - 5*z;  x8 = x4 - 5*z;
+  mul = 5;
+  x1 = pt;  x2 = x1 + mul*x;  x3 = x2 + mul*y;  x4 = x1 + mul*y;
+  x5 = x1 - mul*z;  x6 = x2 - mul*z;  x7 = x3 - mul*z;  x8 = x4 - mul*z;
   figure(fig1);
   drawLinesHelper(P1, x1, x2, x3, x4, x5, x6, x7, x8);
   % ADJUSTMENT
@@ -82,8 +83,8 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
       ny = mid;
       nx = unit(cross(ny,z));
 
-      x1 = pt;  x2 = x1 + 5*nx;  x3 = x2 + 5*ny;  x4 = x1 + 5*ny;
-      x5 = x1 - 5*z;  x6 = x2 - 5*z;  x7 = x3 - 5*z;  x8 = x4 - 5*z;
+      x1 = pt;  x2 = x1 + mul*nx;  x3 = x2 + mul*ny;  x4 = x1 + mul*ny;
+      x5 = x1 - mul*z;  x6 = x2 - mul*z;  x7 = x3 - mul*z;  x8 = x4 - mul*z;
       drawLinesHelper(P1, x1, x2, x3, x4, x5, x6, x7, x8);
 
       s = input('Looks good? - y/n ', 's');  

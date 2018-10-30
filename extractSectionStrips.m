@@ -1,4 +1,6 @@
 function extractSectionStrips(ver, sectionId, orientation, alpha)
+  display = false;
+  disp(sprintf('VERSION: %d', ver));
   K = getIntrinsicParams(); K = K(:,1:3);
   fig = gcf;
 
@@ -7,6 +9,9 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
   if exist(afile) == 2
     load(afile);
     sctn = squeeze(sections(sectionId,:,:));
+    labelkey = getLabelKey(); 
+    lbl = labelkey{labels(sectionId)};
+
     x1 = sctn(:,1); x2 = sctn(:,2); x3 = sctn(:,3); x4 = sctn(:,4); x5 = sctn(:,5); x6 = sctn(:,6); x7 = sctn(:,7); x8 = sctn(:,8);
     x = unit(x2-x1);
     y = unit(x4-x1);
@@ -63,7 +68,8 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
       ax.Position = [left bottom ax_width ax_height];
 
       % single img exp
-      if mod(fs(i),5) ~= 0, continue; end
+      % if mod(fs(i),5) ~= 0, continue; end
+      % if fs(i) ~= 15, continue; end
 
       I = imread(sprintf('undistorted/image%07d.jpg', fs(i)+ver));
       R = reshape(Rs(i,1:3,1:3), [3,3]);
@@ -81,12 +87,25 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
       rgt = Pn * rgt3d;
       % keyboard();
       if ~(lft(3) > 0 && rgt(3) > 0)
-        disp('One point behind camera');
+        if rgt(3) < 0
+          disp('Right point behind camera');
+        elseif lft(3) < 0
+          disp('Left point behind camera');
+        end
       else
         lft = lft / lft(3);
         rgt = rgt / rgt(3);
         lftbtm = Pn * lftbtm3d;  lftbtm = lftbtm / lftbtm(3);
-        top = round(max(1,lft(2)));  btm = round(min(720,lftbtm(2)));
+        if lft(2) > 720
+          if rgt(2) > 720
+            continue;
+          end
+          top = rgt(2);
+        else
+          top = lft(2);
+        end
+        top = round(max(1,top));  
+        btm = round(min(720,lftbtm(2)));
         ckpts = lft(1):100:rgt(1);    % only x-coord will vary on x2-x3 line
         lidx = min(find(ckpts >= 1));
         ridx = max(find(ckpts <= 1280));
@@ -122,20 +141,31 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
               n = n+1;
               p1 = round(ckpts(lidx+j-1));  
               p2 = round(ckpts(lidx+j));
-              % Istrip = In(top:btm, round(ckpts(lidx+j-1)):round(ckpts(lidx+j)), :);
-              % Istrip = uint8(Istrip);
-              % imshow(Istrip);
-              % keyboard();
-              line([p1 p2], [top top], 'Color', 'g', 'LineWidth', 5);
-              line([p2 p2], [top btm], 'Color', 'g', 'LineWidth', 5);
-              line([p1 p2], [btm btm], 'Color', 'g', 'LineWidth', 5);
-              line([p1 p1], [top btm], 'Color', 'g', 'LineWidth', 5);
+
+              if display
+                line([p1 p2], [top top], 'Color', 'g', 'LineWidth', 5);
+                line([p2 p2], [top btm], 'Color', 'g', 'LineWidth', 5);
+                line([p1 p2], [btm btm], 'Color', 'g', 'LineWidth', 5);
+                line([p1 p1], [top btm], 'Color', 'g', 'LineWidth', 5);
+              else
+                Istrip = In(top:btm, p1:p2-1, :);
+                Istrip = uint8(Istrip);
+                % imshow(Istrip);
+                % keyboard();
+                try
+                  imwrite(Istrip, sprintf('sectioning/%s/image%07d_%s%d_%d.jpg', lbl, ver+fs(i), orientation, sectionId, j));
+                catch
+                  keyboard();
+                end
+              end
             end
           end
         end
       end
       disp(sprintf('%d-%d section strips', fs(i), n));
-      print(sprintf('annotated/sectioned/imageSctn%d%07d.jpg', sectionId, fs(i)+ver), '-djpeg', '-r80');
+      if display
+        print(sprintf('annotated/sectioned/imageSctn%d%07d.jpg', sectionId, fs(i)+ver), '-djpeg', '-r80');
+      end
       % pause(0.5);
       % keyboard();
     end
