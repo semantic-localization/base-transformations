@@ -1,7 +1,7 @@
 function extractSectionStrips(ver, sectionId, orientation, alpha)
   display = false;
   disp(sprintf('VERSION: %d', ver));
-  K = getIntrinsicParams(); K = K(:,1:3);
+  [K,fx,fy,px,py] = getIntrinsicParams(); K = K(:,1:3);
   fig = gcf;
 
   [fs, Rs, Cs] = readPoses(ver);
@@ -69,7 +69,7 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
 
       % single img exp
       % if mod(fs(i),5) ~= 0, continue; end
-      % if fs(i) ~= 15, continue; end
+      % if fs(i) ~= 130, continue; end
 
       I = imread(sprintf('undistorted/image%07d.jpg', fs(i)+ver));
       R = reshape(Rs(i,1:3,1:3), [3,3]);
@@ -83,9 +83,8 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
       In = double(In);
       n = 0;  % counter for num_strips
 
-      lft = Pn * lft3d;
+      lft = Pn * lft3d;         lftInRotatedCoords = Rn * [ eye(3) -C ] * lft3d;
       rgt = Pn * rgt3d;
-      % keyboard();
       if ~(lft(3) > 0 && rgt(3) > 0)
         if rgt(3) < 0
           disp('Right point behind camera');
@@ -93,15 +92,18 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
           disp('Left point behind camera');
         end
       else
+        dz = lft(3);
         lft = lft / lft(3);
         rgt = rgt / rgt(3);
         lftbtm = Pn * lftbtm3d;  lftbtm = lftbtm / lftbtm(3);
+        % keyboard();
         if lft(2) > 720
           if rgt(2) > 720
             continue;
           end
           top = rgt(2);
         else
+          %% ONE TIME - SHOULD BE lft(2)
           top = lft(2);
         end
         top = round(max(1,top));  
@@ -132,30 +134,50 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
           % keyboard();
 
           for j=1:ridx-lidx
+            % if j ~= 5, continue; end
             % lftpt = pts_rgb(j,:);
             % rgtpt = pts_rgb(j+1,:);
             % if norm(lftpt) == 0 && norm(rgtpt) == 0
-            if norm(pts_rgb(3*j-2:3*j+3,:)) == 0    % all 6 points considered zero
+            if (norm(pts_rgb(3*j-2:3*j)) == 0) || (norm(pts_rgb(3*j+1:3*j+3,:)) == 0)    % all 6 points considered zero
               continue;
             else
               n = n+1;
               p1 = round(ckpts(lidx+j-1));  
               p2 = round(ckpts(lidx+j));
 
+              dpix1 = 100 * (lidx+j-2);   dx1 = dpix1 * dz/fx;
+              dpix2 = 100 * (lidx+j-1);   dx2 = dpix2 * dz/fx;
+              camFrameCoords1 = [ dx1 lftInRotatedCoords(2) lftInRotatedCoords(3) ];
+
               if display
                 line([p1 p2], [top top], 'Color', 'g', 'LineWidth', 5);
                 line([p2 p2], [top btm], 'Color', 'g', 'LineWidth', 5);
                 line([p1 p2], [btm btm], 'Color', 'g', 'LineWidth', 5);
                 line([p1 p1], [top btm], 'Color', 'g', 'LineWidth', 5);
+                % keyboard();
               else
                 Istrip = In(top:btm, p1:p2-1, :);
                 Istrip = uint8(Istrip);
                 % imshow(Istrip);
                 % keyboard();
-                try
-                  imwrite(Istrip, sprintf('sectioning/%s/image%07d_%s%d_%d.jpg', lbl, ver+fs(i), orientation, sectionId, j));
-                catch
-                  keyboard();
+
+                %% Scale to make appear from canonical viewpoint - same distance as height of section
+                dpv = btm-top;
+                const = 1;
+                mul = const * dpv/fy;
+                scale = 1/mul;
+                Ir = imresize(Istrip, scale);
+                k = 1;
+                w = size(Ir,2);
+                while k+99 <= w
+                  Ir_strip = Ir(:,k:k+99,:);
+                  imwrite(Ir_strip, sprintf('sectioning_scaled_test/%s/image%07d_%s%d_%d_%d.jpg', lbl, ver+fs(i), orientation, sectionId, j, k));
+                  k = k+100;
+                end
+                % boundary condition
+                if k+50 <= w
+                  Ir_strip = Ir(:,max(1,w-99):w,:);
+                  imwrite(Ir_strip, sprintf('sectioning_scaled_test/%s/image%07d_%s%d_%d_%d.jpg', lbl, ver+fs(i), orientation, sectionId, j, w));
                 end
               end
             end
@@ -164,7 +186,7 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
       end
       disp(sprintf('%d-%d section strips', fs(i), n));
       if display
-        print(sprintf('annotated/sectioned/imageSctn%d%07d.jpg', sectionId, fs(i)+ver), '-djpeg', '-r80');
+        print(sprintf('annotated/sectioned/image%07d_%s%d.jpg', fs(i)+ver, orientation, sectionId), '-djpeg', '-r80');
       end
       % pause(0.5);
       % keyboard();

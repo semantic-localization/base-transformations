@@ -11,6 +11,9 @@ function propagate3dLabels(start_ver, end_ver)
 
       % idx = [];
       for j=1:size(fs,1)
+        if mod(fs(j),5) ~= 0,
+          continue;
+        end
         clf;
         axis([0 1280 0 720]);
         hold on;
