@@ -69,7 +69,8 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
 
       % single img exp
       % if mod(fs(i),5) ~= 0, continue; end
-      % if fs(i) ~= 130, continue; end
+      % if fs(i) ~= 170, continue; end
+      % if fs(i) >= 200, continue; end
 
       I = imread(sprintf('undistorted/image%07d.jpg', fs(i)+ver));
       R = reshape(Rs(i,1:3,1:3), [3,3]);
@@ -138,7 +139,8 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
             % lftpt = pts_rgb(j,:);
             % rgtpt = pts_rgb(j+1,:);
             % if norm(lftpt) == 0 && norm(rgtpt) == 0
-            if (norm(pts_rgb(3*j-2:3*j)) == 0) || (norm(pts_rgb(3*j+1:3*j+3,:)) == 0)    % all 6 points considered zero
+            if (norm(pts_rgb(3*j-2:3*j)) == 0) || (norm(pts_rgb(3*j+1:3*j+3,:)) == 0)    % leave a strip with one side in total black
+            % if norm(pts_rgb(3*j-2:3*j+3)) == 0
               continue;
             else
               n = n+1;
@@ -171,13 +173,13 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
                 w = size(Ir,2);
                 while k+99 <= w
                   Ir_strip = Ir(:,k:k+99,:);
-                  imwrite(Ir_strip, sprintf('sectioning_scaled_test/%s/image%07d_%s%d_%d_%d.jpg', lbl, ver+fs(i), orientation, sectionId, j, k));
+                  imwrite(Ir_strip, sprintf('sectioning_scaled/%s/image%07d_%s%d_%d_%d.jpg', lbl, ver+fs(i), orientation, sectionId, j, k));
                   k = k+100;
                 end
                 % boundary condition
                 if k+50 <= w
                   Ir_strip = Ir(:,max(1,w-99):w,:);
-                  imwrite(Ir_strip, sprintf('sectioning_scaled_test/%s/image%07d_%s%d_%d_%d.jpg', lbl, ver+fs(i), orientation, sectionId, j, w));
+                  imwrite(Ir_strip, sprintf('sectioning_scaled/%s/image%07d_%s%d_%d_%d.jpg', lbl, ver+fs(i), orientation, sectionId, j, w));
                 end
               end
             end
