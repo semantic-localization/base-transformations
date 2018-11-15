@@ -1,4 +1,4 @@
-function K = getIntrinsicParams()
+function [K,fx,fy,px,py] = getIntrinsicParams()
   %% Refer calib_fisheye_zshade.txt
   fx = 562.89536;
   fy = 557.29656;
