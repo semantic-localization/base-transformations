@@ -1,22 +1,26 @@
-function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
+function labelsFromVp(image_nums, ver, K)
   imdir = 'undistorted/';
   vpdir = 'vp/';
+
+  % Get image and pose for first couple of images
+  i1 = image_nums(1); 
+  i2 = image_nums(2);
+  [I1,R1,C1,P1] = imgCamPose(ver, i1-ver);
+  [I2,R2,C2,P2] = imgCamPose(ver, i2-ver);
+
+  % Uses VP algorithm to display vanishing lines and choose 2 principal orthogonal directions - x & y axes
   vpfile = sprintf('%simage%07d_vp.mat', vpdir, i1);
-  if exist(vpfile, 'file') == 2
-    load(vpfile);
-  else
-    [vp p All_lines] = getVP(imdir, sprintf('image%07d.jpg', i1), 1, vpdir);
+  if exist(vpfile, 'file') ~= 2
+    getVP(imdir, sprintf('image%07d.jpg', i1), 0, vpdir);
   end
-  f = openfig(sprintf('%simage%07d.fig', vpdir, i1));
-  i = input('Right VP - 1/2/3 ');  
+  % f = openfig(sprintf('%simage%07d.fig', vpdir, i1));
+  vp = displayVP(I1, vpfile);
+  i = input('Right VP - R/G/B (enter 1/2/3): ');  
   rvp = vp(2*i-1:2*i);  x = unit(R1' * inv(K) * [ rvp 1 ]');
-  i = input('Left VP - 1/2/3 ');  
+  i = input('Left VP - R/G/B (enter 1/2/3): ');  
   lvp = vp(2*i-1:2*i);  y = unit(R1' * inv(K) * [ lvp 1 ]');
   z = unit(cross(x,y)); % also z-axis
-  close(f);
-
-  P1 = K * R1 * [eye(3)  -C1];
-  P2 = K * R2 * [eye(3)  -C2];
+  close all;
 
   fig1 = figure;
   imshow(I1);
@@ -24,29 +28,49 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
   imshow(I2);
 
   %% Point from where to start drawing box - obtained by triangulating
-  cfile = sprintf('reconstruction%07d/vp_clicks_%d_%d.mat', ver, i1, i2);
-  if exist(cfile, 'file') == 2
-    load(cfile);
-  else
-    figure(fig1);
-    [x1, y1] = ginput(1);
-    u1 = [ x1'; y1'; ones(1,1) ];
+  %% Since only one click required, not saving file
+  % cfile = sprintf('reconstruction%07d/vp_clicks_%d_%d.mat', ver, i2, i2);
+  % if exist(cfile, 'file') == 2
+  %   load(cfile);
+  % else
+  figure(fig1);
+  [x1, y1] = ginput(1);
+  u1 = [ x1'; y1'; ones(1,1) ];
 
-    figure(fig2);
-    [x2, y2] = ginput(1);
-    u2 = [ x2'; y2'; ones(1,1) ];
-
-    save(cfile, 'u1', 'u2');
-  end
+  figure(fig2);
+  [x2, y2] = ginput(1);
+  u2 = [ x2'; y2'; ones(1,1) ];
 
   u1x = Vec2Skew(u1);
   u2x = Vec2Skew(u2);
   A = [ u1x * P1(:,1:3); u2x * P2(:,1:3) ];
   b = [ -u1x * P1(:,4); -u2x * P2(:,4) ];
+  us = [ u1 u2 ];
+  Ps(1,:,:) = P1; Ps(2,:,:) = P2;
+  handles = [];
+  % for i=3:numel(image_nums)
+  %   [I,~,~,P] = imgCamPose(ver, image_nums(i) - ver);
+  %   Ps(i,:,:) = P;
+  %   handle = figure;
+  %   handles = [ handles handle ];
+  %   imshow(I);
+  %   [x y] = ginput(1);
+  %   u = [ x'; y'; ones(1,1) ];
+  %   us = [ us u ];
+  %   ux = Vec2Skew(u);
+  %   A = [ A; ux * P(:,1:3) ];
+  %   b = [ b; -ux * P(:,4) ];
+  % end
+
+  %   save(cfile, 'u1', 'u2');
+  % end
+
   pt = A \ b;
-  w1 = P1 * [pt; 1];  w1 = w1 / w1(3);   disp(sprintf('Reprojection error on I1: %f', norm(w1-u1)));
-  w2 = P2 * [pt; 1];  w2 = w2 / w2(3);   disp(sprintf('Reprojection error on I2: %f', norm(w2-u2)));
-  disp('Origin projection: ');  disp(P1 * [pt; ones(1,1)]);
+  for i=1:numel(image_nums)
+    P = squeeze(Ps(i,:,:));
+    w = P * [pt; 1];  w = w / w(3);   fprintf('Reprojection error on image %d: %f\n', i, norm(w-us(:,i)));
+  end
+  close(handles);
 
   % point from where to start drawing box
   % p = (rvp+lvp)/2;
@@ -60,16 +84,17 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
     labels = [];  sections = [];
   end
 
-  mul = 5;
+  mul = 15;
   x1 = pt;  x2 = x1 + mul*x;  x3 = x2 + mul*y;  x4 = x1 + mul*y;
   x5 = x1 - mul*z;  x6 = x2 - mul*z;  x7 = x3 - mul*z;  x8 = x4 - mul*z;
   figure(fig1);
   drawLinesHelper(P1, x1, x2, x3, x4, x5, x6, x7, x8);
+  mul = round(mul * input('Elongate axes by factor of: '));
   % ADJUSTMENT
-  s = input('Adjust major axes? - y/n ', 's');  
-  if s(1) == 'y'
-    s = input('Weighted avg? - y/n ', 's');  
-    if s(1) == 'y'
+  adjust = get_boolean_input('Adjust major axes?');  
+  if adjust
+    wtd_avg = get_boolean_input('Weighted avg?');  
+    if wtd_avg
       alpha = input('alpha for weighted avg - ');  
     else
       alpha = 0.5;
@@ -87,14 +112,14 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
       x5 = x1 - mul*z;  x6 = x2 - mul*z;  x7 = x3 - mul*z;  x8 = x4 - mul*z;
       drawLinesHelper(P1, x1, x2, x3, x4, x5, x6, x7, x8);
 
-      s = input('Looks good? - y/n ', 's');  
-      if s(1) == 'y'
+      good = get_boolean_input('Looks good?');  
+      if good
         x = nx;
         y = ny;
         break;
       else
-        s = input('Shift more? - y/n ', 's');  
-        if s(1) == 'y'
+        more = get_boolean_input('Shift more?');  
+        if more
           low = mid;
         else
           high = mid;
@@ -107,7 +132,7 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
   vis = figure();
   [fs,~,Cs] = readPoses(ver);
   inc = linspace(0,1,size(fs,1));
-  cls = [ ones(size(fs))-inc' zeros(size(fs))+inc' zeros(size(fs)) ];
+  cls = [ ones(size(fs))-inc' zeros(size(fs))+inc' zeros(230,1) ];
   linecls = [ 'r', 'g', 'b', 'k' ];
   [num_pt, pts, ~] = readPointCloud(ver);
   [~,I] = sort(fs);
@@ -161,8 +186,8 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
         continue;
       end
       illustrateOrientation(P1, sctn(:,1), sctn(:,2), sctn(:,3), sctn(:,4), sctn(:,5), sctn(:,6), sctn(:,7), sctn(:,8));
-      s = input('OK? - ', 's');
-      if s(1) == 'y'
+      ok = get_boolean_input('OK?');
+      if ok
         section = sctn;
         break;
       end
@@ -190,8 +215,8 @@ function labelsFromVp(i1, i2, I1, I2, R1, C1, R2, C2, K, ver)
     sections = [ sections; reshape(section, [1,3,8]) ];
     save(annotationsFile, 'labels', 'sections');
 
-    s = input('Record another section? - y/n ', 's');  
-    if s(1) == 'n'
+    record_more = get_boolean_input('Record another section?');  
+    if ~record_more
       break;  
     end
   end

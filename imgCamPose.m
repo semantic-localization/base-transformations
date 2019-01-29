@@ -1,6 +1,10 @@
-function [I,R,C,P] = imgCamPose(ver_id)
-  id = mod(ver_id, 200);
-  ver = ver_id - id;
+function [I,R,C,P] = imgCamPose(ver_id, id)
+  if nargin == 1
+    id = mod(ver_id, 200);
+    ver = ver_id - id;
+  else
+    ver = ver_id;
+  end
 
   I = imread(sprintf('undistorted/image%07d.jpg', ver+id));
   [fs,Rs,Cs] = readPoses(ver);
