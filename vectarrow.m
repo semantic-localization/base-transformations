@@ -54,7 +54,7 @@ function vectarrow(p0,p1,color)
           y0 = p0(2);
           x1 = p1(1);
           y1 = p1(2);
-          line([x0;x1],[y0;y1],'Color',color);   % Draw a line between p0 and p1
+          line([x0;x1],[y0;y1],'Color',color,'LineWidth',5);   % Draw a line between p0 and p1
           
           p = p1-p0;
           alpha = 0.1;  % Size of arrow head relative to the length of the vector
@@ -64,7 +64,7 @@ function vectarrow(p0,p1,color)
           hv = [y1-alpha*(p(2)-beta*(p(1)+eps)); y1; y1-alpha*(p(2)+beta*(p(1)+eps))];
           
           % hold on
-          line(hu(:),hv(:),'Color',color)  % Plot arrow head
+          line(hu(:),hv(:),'Color',color,'LineWidth',5)  % Plot arrow head
           % grid on
           % xlabel('x')
           % ylabel('y')
