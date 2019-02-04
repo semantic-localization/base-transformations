@@ -1,3 +1,4 @@
+addpath('/home/jayant/SpatialLayout/spatiallayoutcode/ComputeVP');
 function computeVpBatch(img_nums)
 imdir = 'undistorted/';
 vpdir = 'vp/';
