@@ -18,6 +18,12 @@ function labelkey = getLabelKey()
     'water', 
     'none',
     'toiletries',
-    'tea_coffee'
+    'tea_coffee',
+    'ready_to_eat',
+    'sauce',
+    'soup',
+    'pets',
+    'candy',
+    'canned_food'
   };
 end

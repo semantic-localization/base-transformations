@@ -139,7 +139,7 @@ function extractSectionStrips(ver, sectionId, orientation, alpha)
             % lftpt = pts_rgb(j,:);
             % rgtpt = pts_rgb(j+1,:);
             % if norm(lftpt) == 0 && norm(rgtpt) == 0
-            if (norm(pts_rgb(3*j-2:3*j)) == 0) || (norm(pts_rgb(3*j+1:3*j+3,:)) == 0)    % leave a strip with one side in total black
+            if (norm(pts_rgb(3*j-2:3*j,:)) == 0) || (norm(pts_rgb(3*j+1:3*j+3,:)) == 0)    % leave a strip with one side in total black
             % if norm(pts_rgb(3*j-2:3*j+3)) == 0
               continue;
             else
