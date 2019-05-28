@@ -10,7 +10,7 @@ import airsim
 def get_image_and_depth(client, pos, q):
     x,y,z = pos
     qw,qx,qy,qz = q.elements
-    client.simSetVehiclePose(airsim.Pose(airsim.Vector3r(x,y,z), airsim.Quaternionr(qw,qx,qy,qz)), True)
+    client.simSetVehiclePose(airsim.Pose(airsim.Vector3r(x,y,z), airsim.Quaternionr(qx,qy,qz,qw)), True)
 
     responses = client.simGetImages([
         airsim.ImageRequest("0", airsim.ImageType.Scene),
@@ -22,7 +22,7 @@ def get_image_and_depth(client, pos, q):
 def get_image(client, pos, q):
     x,y,z = pos
     qw,qx,qy,qz = q.elements
-    client.simSetVehiclePose(airsim.Pose(airsim.Vector3r(x,y,z), airsim.Quaternionr(qw,qx,qy,qz)), True)
+    client.simSetVehiclePose(airsim.Pose(airsim.Vector3r(x,y,z), airsim.Quaternionr(qx,qy,qz,qw)), True)
 
     responses = client.simGetImages([
         airsim.ImageRequest("0", airsim.ImageType.Scene),
@@ -55,25 +55,27 @@ def record(client, start_pos, end_pos, start_quat, end_quat, N):
         rx = R[1,:]
         ry = -R[2,:]
         rz = -R[0,:]
+        def rotm(rx,ry,rz):
+            return np.array([-rz, rx, -ry])
         thetas = [10, 20, 30]
         for theta in thetas:
             th = np.radians(theta)
-            R = np.array([ rx*cos(th) + ry*sin(th),
-                          -rx*sin(th) + ry*cos(th),
-                           rz ])
-            response = get_image(client, pos[i,], Quaternion(matrix=R))
+            R = rotm( rx*cos(th) + ry*sin(th),
+                     -rx*sin(th) + ry*cos(th),
+                      rz )
+            response = get_image(client, pos[i,:], Quaternion(matrix=R))
             airsim.write_file(os.path.normpath('image{:07d}_rotz{}.png'.format(i+1, theta)), response.image_data_uint8)
 
-            R = np.array([ -rz*sin(th) + rx*cos(th),
-                            ry,
-                            rz*cos(th) + rx*sin(th) ])
-            response = get_image(client, pos[i,], Quaternion(matrix=R))
+            R = rotm( -rz*sin(th) + rx*cos(th),
+                       ry,
+                       rz*cos(th) + rx*sin(th) )
+            response = get_image(client, pos[i,:], Quaternion(matrix=R))
             airsim.write_file(os.path.normpath('image{:07d}_roty{}.png'.format(i+1, theta)), response.image_data_uint8)
 
-            R = np.array([ rx,
-                           ry*cos(th) + rz*sin(th),
-                          -ry*sin(th) + rz*cos(th) ]
-            response = get_image(client, pos[i,], Quaternion(matrix=R))
+            R = rotm( rx,
+                      ry*cos(th) + rz*sin(th),
+                     -ry*sin(th) + rz*cos(th) )
+            response = get_image(client, pos[i,:], Quaternion(matrix=R))
             airsim.write_file(os.path.normpath('image{:07d}_rotx{}.png'.format(i+1, theta)), response.image_data_uint8)
 
 
