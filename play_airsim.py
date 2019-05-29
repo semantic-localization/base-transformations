@@ -6,6 +6,7 @@ import numpy as np
 from math import cos, sin
 from pyquaternion import Quaternion
 import airsim
+from scipy.io import loadmat, savemat
 
 
 def get_image_and_depth(client, pos, q):
@@ -59,7 +60,9 @@ def record(client, start_pos, end_pos, start_quat, end_quat, N):
         rz = -R[0,:]
         def rotm(rx,ry,rz):
             return np.array([-rz, rx, -ry])
-        thetas = [10, 20, 30]
+        savemat("pose{:07d}.mat".format(i+1), { 'C': pos, 'R': R })
+
+        thetas = [-20, -10, 10, 20]
         for theta in thetas:
             th = np.radians(theta)
             R = rotm( rx*cos(th) + ry*sin(th),
@@ -67,24 +70,71 @@ def record(client, start_pos, end_pos, start_quat, end_quat, N):
                       rz )
             response = get_image(client, pos[i,:], Quaternion(matrix=R))
             airsim.write_file(os.path.normpath('image{:07d}_rotz{}.png'.format(i+1, theta)), response.image_data_uint8)
+            savemat("pose{:07d}_rotz{}.mat".format(i+1, theta), { 'C': pos, 'R': R })
 
             R = rotm( -rz*sin(th) + rx*cos(th),
                        ry,
                        rz*cos(th) + rx*sin(th) )
             response = get_image(client, pos[i,:], Quaternion(matrix=R))
             airsim.write_file(os.path.normpath('image{:07d}_roty{}.png'.format(i+1, theta)), response.image_data_uint8)
+            savemat("pose{:07d}_roty{}.mat".format(i+1, theta), { 'C': pos, 'R': R })
 
             R = rotm( rx,
                       ry*cos(th) + rz*sin(th),
                      -ry*sin(th) + rz*cos(th) )
             response = get_image(client, pos[i,:], Quaternion(matrix=R))
             airsim.write_file(os.path.normpath('image{:07d}_rotx{}.png'.format(i+1, theta)), response.image_data_uint8)
+            savemat("pose{:07d}_rotx{}.mat".format(i+1, theta), { 'C': pos, 'R': R })
+
+
+def save_poses(start_pos, end_pos, start_quat, end_quat, N):
+    # generate positions
+    pos_diff = end_pos - start_pos
+    pos_diff = np.repeat(np.reshape(pos_diff, [1,3]), N, 0)
+    inc = np.reshape(np.linspace(0, 1, num=N), [N,1])
+    pos_diff *= inc
+    start_pos = np.repeat(np.reshape(start_pos, [1,3]), N, 0)
+    pos = start_pos + pos_diff
+
+    # generate orientations
+    qs = Quaternion.intermediates(start_quat, end_quat, N, include_endpoints=False)
+
+    parent_dir = "/home/jayant/monkey/grocery_data/Supermarket/data/simulated_capture"
+
+    # combine
+    for i, q in enumerate(qs):
+        R = q.rotation_matrix
+        rx = R[1,:]
+        ry = -R[2,:]
+        rz = -R[0,:]
+        def rotm(rx,ry,rz):
+            return np.array([-rz, rx, -ry])
+        savemat("{}/pose{:07d}.mat".format(parent_dir, i+1), { 'C': pos, 'R': R })
+
+        # Generate rotations
+        thetas = [-20, -10, 10, 20]
+        for theta in thetas:
+            th = np.radians(theta)
+            R = rotm( rx*cos(th) + ry*sin(th),
+                     -rx*sin(th) + ry*cos(th),
+                      rz )
+            savemat("{}/pose{:07d}_rotz{}.mat".format(parent_dir, i+1, theta), { 'C': pos, 'R': R })
+
+            R = rotm( -rz*sin(th) + rx*cos(th),
+                       ry,
+                       rz*cos(th) + rx*sin(th) )
+            savemat("{}/pose{:07d}_roty{}.mat".format(parent_dir, i+1, theta), { 'C': pos, 'R': R })
+
+            R = rotm( rx,
+                      ry*cos(th) + rz*sin(th),
+                     -ry*sin(th) + rz*cos(th) )
+            savemat("{}/pose{:07d}_rotx{}.mat".format(parent_dir, i+1, theta), { 'C': pos, 'R': R })
 
 
 def record_sequence():
-    client = airsim.VehicleClient()
-    client.confirmConnection()
-    client.setCameraOrientation("0", airsim.to_quaternion(0, 0, 0))
+    # client = airsim.VehicleClient()
+    # client.confirmConnection()
+    # client.setCameraOrientation("0", airsim.to_quaternion(0, 0, 0))
 
     # start: -0.819394	-10.182267	0.390382	0.784631	-0.011836	-0.014987	-0.619669
     start_pos = np.array([ -0.819394, -10.182267, 0.390382])
@@ -96,4 +146,8 @@ def record_sequence():
 
     # number of intermediate points
     N = 100
-    record(client, start_pos, end_pos, start_quat, end_quat, N)
+    # record(client, start_pos, end_pos, start_quat, end_quat, N)
+    save_poses(start_pos, end_pos, start_quat, end_quat, N)
+
+
+record_sequence()
