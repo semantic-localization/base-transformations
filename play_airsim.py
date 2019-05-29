@@ -60,7 +60,7 @@ def record(client, start_pos, end_pos, start_quat, end_quat, N):
         rz = -R[0,:]
         def rotm(rx,ry,rz):
             return np.array([-rz, rx, -ry])
-        savemat("pose{:07d}.mat".format(i+1), { 'C': pos, 'R': R })
+        savemat("pose{:07d}.mat".format(i+1), { 'C': pos[i,:], 'R': R })
 
         thetas = [-20, -10, 10, 20]
         for theta in thetas:
@@ -70,21 +70,21 @@ def record(client, start_pos, end_pos, start_quat, end_quat, N):
                       rz )
             response = get_image(client, pos[i,:], Quaternion(matrix=R))
             airsim.write_file(os.path.normpath('image{:07d}_rotz{}.png'.format(i+1, theta)), response.image_data_uint8)
-            savemat("pose{:07d}_rotz{}.mat".format(i+1, theta), { 'C': pos, 'R': R })
+            savemat("pose{:07d}_rotz{}.mat".format(i+1, theta), { 'C': pos[i,:], 'R': R })
 
             R = rotm( -rz*sin(th) + rx*cos(th),
                        ry,
                        rz*cos(th) + rx*sin(th) )
             response = get_image(client, pos[i,:], Quaternion(matrix=R))
             airsim.write_file(os.path.normpath('image{:07d}_roty{}.png'.format(i+1, theta)), response.image_data_uint8)
-            savemat("pose{:07d}_roty{}.mat".format(i+1, theta), { 'C': pos, 'R': R })
+            savemat("pose{:07d}_roty{}.mat".format(i+1, theta), { 'C': pos[i,:], 'R': R })
 
             R = rotm( rx,
                       ry*cos(th) + rz*sin(th),
                      -ry*sin(th) + rz*cos(th) )
             response = get_image(client, pos[i,:], Quaternion(matrix=R))
             airsim.write_file(os.path.normpath('image{:07d}_rotx{}.png'.format(i+1, theta)), response.image_data_uint8)
-            savemat("pose{:07d}_rotx{}.mat".format(i+1, theta), { 'C': pos, 'R': R })
+            savemat("pose{:07d}_rotx{}.mat".format(i+1, theta), { 'C': pos[i,:], 'R': R })
 
 
 def save_poses(start_pos, end_pos, start_quat, end_quat, N):
@@ -109,7 +109,7 @@ def save_poses(start_pos, end_pos, start_quat, end_quat, N):
         rz = -R[0,:]
         def rotm(rx,ry,rz):
             return np.array([-rz, rx, -ry])
-        savemat("{}/pose{:07d}.mat".format(parent_dir, i+1), { 'C': pos, 'R': R })
+        savemat("{}/pose{:07d}.mat".format(parent_dir, i+1), { 'C': pos[i,:], 'R': R })
 
         # Generate rotations
         thetas = [-20, -10, 10, 20]
@@ -118,17 +118,17 @@ def save_poses(start_pos, end_pos, start_quat, end_quat, N):
             R = rotm( rx*cos(th) + ry*sin(th),
                      -rx*sin(th) + ry*cos(th),
                       rz )
-            savemat("{}/pose{:07d}_rotz{}.mat".format(parent_dir, i+1, theta), { 'C': pos, 'R': R })
+            savemat("{}/pose{:07d}_rotz{}.mat".format(parent_dir, i+1, theta), { 'C': pos[i,:], 'R': R })
 
             R = rotm( -rz*sin(th) + rx*cos(th),
                        ry,
                        rz*cos(th) + rx*sin(th) )
-            savemat("{}/pose{:07d}_roty{}.mat".format(parent_dir, i+1, theta), { 'C': pos, 'R': R })
+            savemat("{}/pose{:07d}_roty{}.mat".format(parent_dir, i+1, theta), { 'C': pos[i,:], 'R': R })
 
             R = rotm( rx,
                       ry*cos(th) + rz*sin(th),
                      -ry*sin(th) + rz*cos(th) )
-            savemat("{}/pose{:07d}_rotx{}.mat".format(parent_dir, i+1, theta), { 'C': pos, 'R': R })
+            savemat("{}/pose{:07d}_rotx{}.mat".format(parent_dir, i+1, theta), { 'C': pos[i,:], 'R': R })
 
 
 def record_sequence():
