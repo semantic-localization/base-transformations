@@ -3,6 +3,7 @@ import ipdb
 import pprint
 
 import numpy as np
+from math import cos, sin
 from pyquaternion import Quaternion
 import airsim
 
@@ -44,6 +45,7 @@ def record(client, start_pos, end_pos, start_quat, end_quat, N):
 
     # combine
     for i, q in enumerate(qs):
+        print(pos[i,:], q.rotation_matrix)
         responses = get_image_and_depth(client, pos[i,:], q)
         for j, response in enumerate(responses):
             if response.pixels_as_float:
@@ -77,8 +79,6 @@ def record(client, start_pos, end_pos, start_quat, end_quat, N):
                      -ry*sin(th) + rz*cos(th) )
             response = get_image(client, pos[i,:], Quaternion(matrix=R))
             airsim.write_file(os.path.normpath('image{:07d}_rotx{}.png'.format(i+1, theta)), response.image_data_uint8)
-
-
 
 
 def record_sequence():
